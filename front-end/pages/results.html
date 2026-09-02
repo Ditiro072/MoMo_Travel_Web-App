@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore - MTN MoMo Travel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="nav-wrapper">
+            <div class="nav-left">
+                <a href="home.html" class="logo">
+                    <span class="logo-accent">MTN</span>
+                    <span class="logo-momo">MoMo</span>
+                    <span class="logo-sub">Travel</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="home.html">Home</a>
+                    <a href="trips.html">My Trips</a>
+                    <a href="results.html" class="active">Explore</a>
+                    <a href="trips.html">Bookings</a>
+                    <a href="journeyfund.html">JourneyFund</a>
+                </nav>
+            </div>
+            <div class="nav-right">
+                <!-- Cart bell icon: same idea as a notifications icon, but for the cart -->
+                <button class="icon-button" id="cartIconBtn" aria-label="Cart">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </button>
+                <a href="#" class="user-profile">
+                    <div class="avatar">N</div>
+                    <div class="user-info"><span class="user-name">Nhlakanipho</span></div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+
+        <div class="results-header">
+            <div>
+                <h1 id="destinationTitle">Results</h1>
+                <p id="destinationSubtitle" style="color: var(--momo-gray-medium); margin-top: 4px;"></p>
+            </div>
+            <a href="../pages/home.html" class="change-search"><i class="fa-solid fa-arrow-left"></i> Change search</a>
+        </div>
+
+        <!-- Category tabs — clicking these swaps which listings are shown below.
+             This is what makes "click Stays -> see accommodations, click Transport -> see transport" work. -->
+        <div class="tab-bar" id="tabBar">
+            <button class="tab-btn active" data-category="stays">
+                <i class="fa-solid fa-bed"></i> Stays <span class="count" id="count-stays">0</span>
+            </button>
+            <button class="tab-btn" data-category="transport">
+                <i class="fa-solid fa-bus-simple"></i> Transport <span class="count" id="count-transport">0</span>
+            </button>
+            <button class="tab-btn" data-category="activities">
+                <i class="fa-solid fa-camera"></i> Things to do <span class="count" id="count-activities">0</span>
+            </button>
+            <button class="tab-btn" data-category="food">
+                <i class="fa-solid fa-utensils"></i> Food & Dining <span class="count" id="count-food">0</span>
+            </button>
+        </div>
+
+        <div class="listing-grid" id="listingGrid">
+            <!-- Cards get rendered here by results.js -->
+        </div>
+
+    </main>
+
+    <!-- Floating cart summary bar — appears once at least 1 item is added -->
+    <div class="cart-bar" id="cartBar">
+        <div class="cart-bar-info">
+            <span class="cart-bar-count" id="cartBarCount">0</span>
+            <span id="cartBarDestination"></span>
+        </div>
+        <div class="cart-bar-total" id="cartBarTotal">R0</div>
+        <button class="cart-bar-view" type="button">View Cart</button>
+    </div>
+
+    <!-- Cart slide-in panel -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <aside class="cart-panel" id="cartPanel">
+        <div class="cart-panel-header">
+            <h2>Your Trip Cart</h2>
+            <button class="cart-panel-close" id="cartPanelClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="cart-panel-body" id="cartPanelBody">
+            <!-- Cart items rendered here -->
+        </div>
+        <div class="cart-panel-footer">
+            <div class="cart-total-row">
+                <span>Total</span>
+                <span id="cartPanelTotal">R0</span>
+            </div>
+            <button class="btn-add-trip" id="addToTripBtn">Add to Trips</button>
+        </div>
+    </aside>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/cart.js"></script>
+    <script src="../js/results.js"></script>
+</body>
+</html>

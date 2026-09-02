@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JourneyFund - MTN MoMo Travel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="nav-wrapper">
+            <div class="nav-left">
+                <a href="home.html" class="logo">
+                    <span class="logo-accent">MTN</span>
+                    <span class="logo-momo">MoMo</span>
+                    <span class="logo-sub">Travel</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="home.html">Home</a>
+                    <a href="trips.html">My Trips</a>
+                    <a href="results.html">Explore</a>
+                    <a href="journeyfund.html" class="active">JourneyFund</a>
+                </nav>
+            </div>
+            <div class="nav-right">
+                <a href="#" class="user-profile">
+                    <div class="avatar">N</div>
+                    <div class="user-info"><span class="user-name">Nhlakanipho</span></div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+
+        <!-- Hero: explains the innovation up front, per the brief -->
+        <section class="jf-hero">
+            <div class="jf-hero-pill"><i class="fa-solid fa-shield-heart"></i> Purpose-based funding</div>
+            <h1>Don't just send money for the trip.<br>Fund the <span>journey</span> itself.</h1>
+            <p>
+                Instead of an open transfer, every JourneyFund request is locked to one specific
+                expense — a hotel, a taxi, an activity. When it's paid, you get a secure Travel
+                Voucher that proves exactly what was funded, who paid, and whether it's been used.
+            </p>
+            <div class="jf-hero-flow">
+                <span class="step">1. Pick an item</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="step">2. Pay it or ask a friend</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="step">3. MoMo payment</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="step">4. Travel Voucher issued</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="step">5. Provider redeems it</span>
+            </div>
+        </section>
+
+        <!-- Create a funding request -->
+        <section>
+            <h2 class="jf-section-title">Create a Funding Request</h2>
+            <p class="jf-section-sub">Pick a trip and one item from it — this keeps every payment tied to something real, not a lump sum.</p>
+
+            <div class="jf-panel" style="max-width: 560px;">
+                <div class="jf-field">
+                    <label for="tripSelect">Trip</label>
+                    <select id="tripSelect">
+                        <option value="">Select a trip…</option>
+                    </select>
+                </div>
+
+                <div class="jf-field">
+                    <label for="itemSelect">What are you funding?</label>
+                    <select id="itemSelect" disabled>
+                        <option value="">Select a trip first…</option>
+                    </select>
+                </div>
+
+                <div class="jf-item-preview" id="itemPreview">
+                    <div class="listing-icon"><i class="fa-solid fa-tag" id="itemPreviewIcon"></i></div>
+                    <div class="jf-item-preview-info">
+                        <h4 id="itemPreviewName"></h4>
+                        <span id="itemPreviewLocation"></span>
+                        <div id="itemPreviewBadge" style="margin-top: 6px;"></div>
+                    </div>
+                    <div class="jf-item-preview-price" id="itemPreviewPrice"></div>
+                </div>
+
+                <div class="jf-field">
+                    <label>Who's funding this?</label>
+                    <div class="jf-mode-toggle">
+                        <button type="button" class="jf-mode-btn active" data-mode="self">
+                            <i class="fa-solid fa-user"></i> I'll pay
+                        </button>
+                        <button type="button" class="jf-mode-btn" data-mode="friend">
+                            <i class="fa-solid fa-people-arrows"></i> Ask someone
+                        </button>
+                    </div>
+                </div>
+
+                <div class="jf-friend-fields" id="friendFields">
+                    <div class="jf-field">
+                        <label for="funderName">Their name</label>
+                        <input type="text" id="funderName" placeholder="e.g. Thabo Nkosi">
+                    </div>
+                    <div class="jf-field">
+                        <label for="funderMsisdn">Their MoMo mobile number</label>
+                        <input type="tel" id="funderMsisdn" placeholder="e.g. 0821234567">
+                    </div>
+                    <div class="jf-field">
+                        <label for="fundMessage">Message <span style="font-weight: 400; color: var(--momo-gray-medium);">(optional)</span></label>
+                        <textarea id="fundMessage" placeholder="e.g. Covering my hotel for the Cape Town trip — thank you!"></textarea>
+                    </div>
+                </div>
+
+                <button class="btn-jf-submit" id="submitFundRequest" disabled>Select a trip item to continue</button>
+            </div>
+        </section>
+
+        <!-- Pending / sent requests -->
+        <section>
+            <h2 class="jf-section-title">My Funding Requests</h2>
+            <p class="jf-section-sub">Requests you've created — pay them yourself or track a friend's response.</p>
+            <div id="fundingRequestsList"></div>
+        </section>
+
+        <!-- Voucher wallet -->
+        <section>
+            <h2 class="jf-section-title">My Travel Vouchers</h2>
+            <p class="jf-section-sub">Issued once a request is paid. Give the reference + PIN to the provider to redeem.</p>
+            <div class="voucher-grid" id="voucherGrid"></div>
+        </section>
+
+    </main>
+
+    <!-- MoMo Request-to-Pay modal -->
+    <div class="modal-overlay" id="payModalOverlay">
+        <div class="momo-modal">
+
+            <!-- Step 1: confirm + enter PIN -->
+            <div id="modalPinStep">
+                <div class="momo-modal-logo">M</div>
+                <h3>Confirm MoMo Payment</h3>
+                <p class="modal-desc" id="modalItemDesc"></p>
+                <div class="modal-amount" id="modalAmount">R0</div>
+                <div class="pin-group">
+                    <div class="pin-boxes" id="payPinBoxes">
+                        <input type="text" inputmode="numeric" maxlength="1">
+                        <input type="text" inputmode="numeric" maxlength="1">
+                        <input type="text" inputmode="numeric" maxlength="1">
+                        <input type="text" inputmode="numeric" maxlength="1">
+                    </div>
+                </div>
+                <p class="pin-hint" style="margin-bottom: 1rem;">Enter your MoMo PIN to authorise this payment.</p>
+                <button class="btn-modal-confirm" id="confirmPayBtn">Confirm & Pay</button>
+                <button class="btn-modal-cancel" id="cancelPayBtn">Cancel</button>
+            </div>
+
+            <!-- Step 2: processing -->
+            <div class="momo-modal-status" id="modalProcessing">
+                <div class="momo-spinner"></div>
+                <p style="font-weight: 600;">Processing with MTN MoMo…</p>
+                <p style="font-size: 0.82rem; color: var(--momo-gray-medium);">Demo mode — no real funds are moved.</p>
+            </div>
+
+            <!-- Step 3: success + voucher reveal -->
+            <div class="momo-modal-status" id="modalSuccess">
+                <div class="momo-success-icon"><i class="fa-solid fa-check"></i></div>
+                <h3>Payment Successful</h3>
+                <p style="color: var(--momo-gray-medium); font-size: 0.9rem;">Your Travel Voucher has been generated.</p>
+                <div class="voucher-reveal-mini" id="voucherRevealMini" style="width: 100%;"></div>
+                <button class="btn-modal-confirm" id="closeSuccessBtn">View My Vouchers</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="../js/cart.js"></script>
+    <script src="../js/momo-service.js"></script>
+    <script src="../js/journeyfund.js"></script>
+    <script src="../js/journeyfund-page.js"></script>
+</body>
+</html>
