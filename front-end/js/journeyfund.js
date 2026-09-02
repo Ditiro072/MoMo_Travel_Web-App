@@ -42,6 +42,14 @@ function createFundingRequest({ trip, item, fundMode, funderName, funderMsisdn, 
   const list = getFundingRequests();
   list.unshift(request);
   saveFundingRequests(list);
+
+  const user = window.FirebaseAuth?.currentUser;
+  if (user && window.FirestoreService?.addFundingRequest) {
+    window.FirestoreService.addFundingRequest(user.uid, request).catch(error => {
+      console.warn("Funding request saved locally but Firestore sync failed:", error);
+    });
+  }
+
   return request;
 }
 
@@ -51,6 +59,14 @@ function updateFundingRequest(id, changes) {
   if (idx === -1) return null;
   list[idx] = { ...list[idx], ...changes };
   saveFundingRequests(list);
+
+  const user = window.FirebaseAuth?.currentUser;
+  if (user && window.FirestoreService?.updateFundingRequest) {
+    window.FirestoreService.updateFundingRequest(user.uid, id, changes).catch(error => {
+      console.warn("Funding request updated locally but Firestore sync failed:", error);
+    });
+  }
+
   return list[idx];
 }
 
@@ -65,6 +81,14 @@ function saveVoucher(voucher) {
   const list = getVouchers();
   list.unshift(voucher);
   localStorage.setItem(VOUCHERS_KEY, JSON.stringify(list));
+
+  const user = window.FirebaseAuth?.currentUser;
+  if (user && window.FirestoreService?.addVoucher) {
+    window.FirestoreService.addVoucher(user.uid, voucher).catch(error => {
+      console.warn("Voucher saved locally but Firestore sync failed:", error);
+    });
+  }
+
   return voucher;
 }
 

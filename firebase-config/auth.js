@@ -82,7 +82,7 @@ if (form) {
       document.getElementById("successBanner").classList.add("show");
 
       setTimeout(() => {
-        window.location.href = "../pages/home.html";
+        window.location.href = "/home";
       }, 1200);
 
     } catch (error) {

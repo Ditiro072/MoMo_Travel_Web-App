@@ -48,7 +48,7 @@ if (form) {
       const redirect = params.get("redirect");
 
       setTimeout(() => {
-        window.location.href = redirect ? decodeURIComponent(redirect) : "../pages/home.html";
+        window.location.href = redirect ? decodeURIComponent(redirect) : "/home";
       }, 900);
 
     } catch (error) {

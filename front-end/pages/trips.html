@@ -5,23 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Trips - MTN MoMo Travel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/front-end/pages/styles.css">
 </head>
 <body>
     <header class="top-nav">
         <div class="nav-wrapper">
             <div class="nav-left">
-                <a href="home.html" class="logo">
+                <a href="/home" class="logo">
                     <span class="logo-accent">MTN</span>
                     <span class="logo-momo">MoMo</span>
                     <span class="logo-sub">Travel</span>
                 </a>
                 <nav class="nav-links">
-                    <a href="home.html">Home</a>
-                    <a href="trips.html" class="active">My Trips</a>
-                    <a href="results.html">Explore</a>
-                    <a href="trips.html">Bookings</a>
-                    <a href="journeyfund.html">JourneyFund</a>
+                    <a href="/home">Home</a>
+                    <a href="/trips" class="active">My Trips</a>
+                    <a href="/explore">Explore</a>
+                    <a href="/bookings">Bookings</a>
+                    <a href="/journeyfund">JourneyFund</a>
                 </nav>
             </div>
             <div class="nav-right">
@@ -40,7 +40,7 @@
                 <h2>My Trips</h2>
                 <p>Everything you've added from Explore, grouped by trip.</p>
             </div>
-            <a href="home.html" class="btn-primary-dark" style="background-color: var(--momo-yellow); color: var(--momo-black);">
+            <a href="/home" class="btn-primary-dark" style="background-color: var(--momo-yellow); color: var(--momo-black);">
                 <i class="fa-solid fa-plus"></i> Plan a new trip
             </a>
         </div>
@@ -50,10 +50,10 @@
         </div>
     </main>
 
-    <script type="module" src="../../firebase-config/firebase-config.js"></script>
-    <script type="module" src="../../firebase-config/firestore-service.js"></script>
-    <script type="module" src="../../firebase-config/auth-guard.js"></script>
-    <script src="../js/cart.js" defer></script>
-    <script src="../js/trips.js" defer></script>
+    <script type="module" src="/firebase-config/firebase-config.js"></script>
+    <script type="module" src="/firebase-config/firestore-service.js"></script>
+    <script type="module" src="/firebase-config/auth-guard.js"></script>
+    <script src="/front-end/js/cart.js" defer></script>
+    <script src="/front-end/js/trips.js" defer></script>
 </body>
 </html>

@@ -82,7 +82,7 @@ async function cancelTrip(tripId) {
   }
 
   try {
-      const response = await fetch('http://localhost:3000/api/disburse', {
+      const response = await fetch('/api/disburse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -100,7 +100,7 @@ async function cancelTrip(tripId) {
           if (typeof setTrips === 'function') {
             setTrips(trips);
           } else {
-            localStorage.setItem('trips', JSON.stringify(trips)); 
+            localStorage.setItem(TRIPS_KEY, JSON.stringify(trips)); 
           }
           
           renderTrips();

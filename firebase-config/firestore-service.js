@@ -39,12 +39,20 @@ async function getUserProfile(uid) {
 // --- Trips (users/{uid}/trips/{tripId}) ---
 
 async function addTrip(uid, trip) {
-  const ref = await addDoc(collection(db, "users", uid, "trips"), {
+  const payload = {
     destination: trip.destination,
     items: trip.items,
     total: trip.total,
     createdAt: serverTimestamp(),
-  });
+  };
+
+  if (trip.id) {
+    const ref = doc(db, "users", uid, "trips", trip.id);
+    await setDoc(ref, payload);
+    return { ...trip, id: ref.id };
+  }
+
+  const ref = await addDoc(collection(db, "users", uid, "trips"), payload);
   return { ...trip, id: ref.id };
 }
 
@@ -63,11 +71,19 @@ async function deleteTrip(uid, tripId) {
 // --- Funding requests (users/{uid}/fundingRequests/{id}) ---
 
 async function addFundingRequest(uid, request) {
-  const { id: _ignored, ...cleanRequest } = request; // never trust a caller-supplied id
-  const ref = await addDoc(collection(db, "users", uid, "fundingRequests"), {
+  const { id, ...cleanRequest } = request;
+  const payload = {
     ...cleanRequest,
     createdAt: serverTimestamp(),
-  });
+  };
+
+  if (id) {
+    const ref = doc(db, "users", uid, "fundingRequests", id);
+    await setDoc(ref, payload);
+    return { ...cleanRequest, id: ref.id };
+  }
+
+  const ref = await addDoc(collection(db, "users", uid, "fundingRequests"), payload);
   return { ...cleanRequest, id: ref.id };
 }
 
@@ -84,14 +100,19 @@ async function updateFundingRequest(uid, requestId, changes) {
 // --- Vouchers (users/{uid}/vouchers/{id}) ---
 
 async function addVoucher(uid, voucher) {
-  // mintVoucher() in momo-service.js sets a client-side `id` (e.g. "vch-...")
-  // purely for its own bookkeeping before this call — strip it here so it
-  // never gets stored as a field and collides with the real Firestore doc id.
-  const { id: _ignored, ...cleanVoucher } = voucher;
-  const ref = await addDoc(collection(db, "users", uid, "vouchers"), {
+  const { id, ...cleanVoucher } = voucher;
+  const payload = {
     ...cleanVoucher,
     issuedAt: serverTimestamp(),
-  });
+  };
+
+  if (id) {
+    const ref = doc(db, "users", uid, "vouchers", id);
+    await setDoc(ref, payload);
+    return { ...cleanVoucher, id: ref.id };
+  }
+
+  const ref = await addDoc(collection(db, "users", uid, "vouchers"), payload);
   return { ...cleanVoucher, id: ref.id };
 }
 

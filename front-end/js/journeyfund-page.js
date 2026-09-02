@@ -114,7 +114,7 @@ function updateSubmitState() {
 });
 
 // --- Create the funding request ---
-submitBtn.addEventListener("click", () => {
+submitBtn.addEventListener("click", async () => {
   const request = createFundingRequest({
     trip: selectedTrip,
     item: selectedItem,
@@ -123,6 +123,16 @@ submitBtn.addEventListener("click", () => {
     funderMsisdn: document.getElementById("funderMsisdn").value.trim(),
     message: document.getElementById("fundMessage").value.trim(),
   });
+
+  try {
+    await fetch("/api/journeyfund/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    });
+  } catch (error) {
+    console.warn("JourneyFund request saved locally; server sync failed:", error);
+  }
 
   showToast(fundMode === "self" ? "Request created — pay it below" : `Request sent to ${request.funderName}`);
   renderFundingRequests();

@@ -32,7 +32,7 @@ async function requireAuth() {
   const user = await getCurrentUser();
   if (!user) {
     const here = encodeURIComponent(window.location.href);
-    window.location.href = `../signup&login/login.html?redirect=${here}`;
+    window.location.href = `/login?redirect=${here}`;
     return null;
   }
   return user;
@@ -57,7 +57,7 @@ function initNavAuthUI() {
     logoutBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       await signOut(auth);
-      window.location.href = "../signup&login/login.html";
+      window.location.href = "/login";
     });
   }
 }

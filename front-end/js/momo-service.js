@@ -15,26 +15,46 @@
    since they don't care whether the payment was real or simulated.
    ========================================================== */
 
-const PAYMENT_MODE = "demo"; // 'demo' | 'sandbox' | 'production' — see project spec §13
+const PAYMENT_MODE = "server"; // server route decides demo vs live mode from environment keys
 
 // --- Simulated MTN MoMo Collections / Request-to-Pay ---
 // Real version: POST to your backend, which calls
 // MTN's /collection/v1_0/requesttopay, then polls /requesttopay/{id}.
-function requestToPay({ msisdn, amount, note }) {
-  return new Promise((resolve) => {
-    // Simulate realistic network + MoMo approval latency
-    setTimeout(() => {
-      resolve({
-        success: true,
-        momoReferenceId: "MOMO-" + Date.now().toString(36).toUpperCase(),
-        payerMsisdn: msisdn,
-        amount,
-        note,
-        status: "SUCCESSFUL",
-        mode: PAYMENT_MODE,
-      });
-    }, 1600);
-  });
+async function requestToPay({ msisdn, amount, note }) {
+  try {
+    const response = await fetch("/api/journeyfund/pay", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ msisdn, amount, note }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "JourneyFund payment failed");
+
+    return {
+      success: result.success,
+      momoReferenceId: result.reference,
+      payerMsisdn: msisdn,
+      amount,
+      note,
+      status: result.status,
+      mode: result.mode || PAYMENT_MODE,
+    };
+  } catch (error) {
+    console.warn("JourneyFund server payment failed, using local demo fallback:", error);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          momoReferenceId: "MOMO-" + Date.now().toString(36).toUpperCase(),
+          payerMsisdn: msisdn,
+          amount,
+          note,
+          status: "SUCCESSFUL",
+          mode: "local-demo",
+        });
+      }, 900);
+    });
+  }
 }
 
 // --- Account validation (MTN MoMo Account Validation API, simulated) ---

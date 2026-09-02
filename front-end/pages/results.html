@@ -5,23 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Explore - MTN MoMo Travel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/front-end/pages/styles.css">
 </head>
 <body>
     <header class="top-nav">
         <div class="nav-wrapper">
             <div class="nav-left">
-                <a href="home.html" class="logo">
+                <a href="/home" class="logo">
                     <span class="logo-accent">MTN</span>
                     <span class="logo-momo">MoMo</span>
                     <span class="logo-sub">Travel</span>
                 </a>
                 <nav class="nav-links">
-                    <a href="home.html">Home</a>
-                    <a href="trips.html">My Trips</a>
-                    <a href="results.html" class="active">Explore</a>
-                    <a href="trips.html">Bookings</a>
-                    <a href="journeyfund.html">JourneyFund</a>
+                    <a href="/home">Home</a>
+                    <a href="/trips">My Trips</a>
+                    <a href="/explore" class="active">Explore</a>
+                    <a href="/bookings">Bookings</a>
+                    <a href="/journeyfund">JourneyFund</a>
                 </nav>
             </div>
             <div class="nav-right">
@@ -45,7 +45,7 @@
                 <h1 id="destinationTitle">Results</h1>
                 <p id="destinationSubtitle" style="color: var(--momo-gray-medium); margin-top: 4px;"></p>
             </div>
-            <a href="../pages/home.html" class="change-search"><i class="fa-solid fa-arrow-left"></i> Change search</a>
+            <a href="/home" class="change-search"><i class="fa-solid fa-arrow-left"></i> Change search</a>
         </div>
 
         <!-- Category tabs — clicking these swaps which listings are shown below.
@@ -102,11 +102,10 @@
 
     <div class="toast" id="toast"></div>
 
-    <script type="module" src="../../firebase-config/firebase-config.js"></script>
-    <script type="module" src="../../firebase-config/firestore-service.js"></script>
-    <script type="module" src="../../firebase-config/auth-guard.js"></script>
-    <script src="../js/data.js" defer></script>
-    <script src="../js/cart.js" defer></script>
-    <script src="../js/results.js" defer></script>
+    <script type="module" src="/firebase-config/firebase-config.js"></script>
+    <script type="module" src="/firebase-config/firestore-service.js"></script>
+    <script type="module" src="/firebase-config/auth-guard.js"></script>
+    <script src="/front-end/js/cart.js" defer></script>
+    <script src="/front-end/js/results.js" defer></script>
 </body>
 </html>

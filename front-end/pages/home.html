@@ -4,33 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - MTN MoMo Travel</title>
-    <!-- Font Awesome for clean, modern vector icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/front-end/pages/styles.css">
 </head>
 
 <body>
     <header class="top-nav">
         <div class="nav-wrapper">
             <div class="nav-left">
-                <a href="home.html" class="logo">
+                <a href="/home" class="logo">
                     <span class="logo-accent">MTN</span>
                     <span class="logo-momo">MoMo</span>
                     <span class="logo-sub">Travel</span>
                 </a>
                 <nav class="nav-links">
-                    <a href="../pages/home.html" class="active">Home</a>
-                    <a href="../pages/trips.html">My Trips</a>
-                    <a href="../pages/results.html">Explore</a>
-                    <a href="../pages/trips.html">Bookings</a>
-                    <a href="../pages/journeyfund.html">JourneyFund</a>
+                    <a href="/home" class="active">Home</a>
+                    <a href="/trips">My Trips</a>
+                    <a href="/explore">Explore</a>
+                    <a href="/bookings">Bookings</a>
+                    <a href="/journeyfund">JourneyFund</a>
                 </nav>
             </div>
             <div class="nav-right">
                 <button class="icon-button" aria-label="Notifications">
                     <i class="fa-regular fa-bell"></i>
                 </button>
-                <button class="icon-button" id="logoutBtn" aria-label="Sign out" title="Sign out"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                <button class="icon-button" id="logoutBtn" aria-label="Sign out" title="Sign out">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </button>
                 <a href="#" class="user-profile">
                     <div class="avatar">N</div>
                     <div class="user-info">
@@ -42,52 +43,49 @@
         </div>
     </header>
 
-    <main class="page-container">
-
-        <section class="hero-section">
+    <main class="page-container fullscreen-page">
+        <section class="hero-section hero-with-media">
             <div class="hero-text">
                 <span class="badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Smart Travel Planning</span>
-                <h1>Where do you want to explore today?</h1>
-                <p>Plan trips, track budgets, and pay participating providers seamlessly with MTN MoMo.</p>
+                <h1>Explore Africa with MoMo-ready travel planning</h1>
+                <p>Search a destination, choose a category, compare prices, save trips, and fund bookings with JourneyFund.</p>
             </div>
 
-            <!-- FIX: search now actually navigates to results.html with the destination,
-                 instead of doing nothing. Wrapped in a <form> so pressing Enter also works. -->
             <form class="search-bar" id="searchForm">
                 <div class="search-field">
                     <i class="fa-solid fa-magnifying-glass field-icon"></i>
-                    <input type="text" id="destinationInput" placeholder="Search destination, e.g. Cape Town..." required>
+                    <input type="text" id="destinationInput" placeholder="Search destination, e.g. Nairobi..." required>
                 </div>
-                <button type="button" class="filter-btn" aria-label="Filter Options">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>Filters</span>
-                </button>
+                <select class="category-select" id="categorySelect" aria-label="Category">
+                    <option value="stays">Stays</option>
+                    <option value="transport">Transport</option>
+                    <option value="activities">Things to do</option>
+                    <option value="food">Food & Dining</option>
+                </select>
                 <button type="submit" class="search-btn">Explore</button>
             </form>
         </section>
 
-        <!-- FIX: each card now links to results.html?destination=...&category=...
-             instead of dead hrefs on inner <i>/<span> tags -->
-        <section class="categories-section">
-            <a href="../pages/results.html?category=stays" class="category-card active">
-                <div class="category-icon"><i class="fa-solid fa-bed"></i></div>
-                <span>Stays</span>
+        <section class="categories-section image-categories" id="categoriesGrid">
+            <a href="/explore?category=stays" class="category-card image-category">
+                <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=700&q=80" alt="">
+                <span><i class="fa-solid fa-bed"></i> Stays</span>
             </a>
-            <a href="../pages/results.html?category=transport" class="category-card">
-                <div class="category-icon"><i class="fa-solid fa-bus-simple"></i></div>
-                <span>Transport</span>
+            <a href="/explore?category=transport" class="category-card image-category">
+                <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=700&q=80" alt="">
+                <span><i class="fa-solid fa-bus-simple"></i> Transport</span>
             </a>
-            <a href="../pages/results.html?category=activities" class="category-card">
-                <div class="category-icon"><i class="fa-solid fa-camera"></i></div>
-                <span>Things to do</span>
+            <a href="/explore?category=activities" class="category-card image-category">
+                <img src="https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=700&q=80" alt="">
+                <span><i class="fa-solid fa-camera"></i> Things to do</span>
             </a>
-            <a href="../pages/results.html?category=food" class="category-card">
-                <div class="category-icon"><i class="fa-solid fa-utensils"></i></div>
-                <span>Food & Dining</span>
+            <a href="/explore?category=food" class="category-card image-category">
+                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80" alt="">
+                <span><i class="fa-solid fa-utensils"></i> Food & Dining</span>
             </a>
-            <a href="ai-planner.html" class="category-card highlight">
-                <div class="category-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                <span>AI Planner</span>
+            <a href="/ai-planner" class="category-card image-category ai-category">
+                <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=700&q=80" alt="">
+                <span><i class="fa-solid fa-wand-magic-sparkles"></i> AI Planner</span>
             </a>
         </section>
 
@@ -95,8 +93,8 @@
             <div class="ai-banner-content">
                 <div class="ai-pill"><i class="fa-solid fa-bolt"></i> Powered by MoMo</div>
                 <h2>Plan your entire trip with AI</h2>
-                <p>Provide your budget and dates. Our AI generates verified itineraries, optimizes travel costs, and secures direct bookings via MoMo.</p>
-                <a href="ai-planner.html" class="btn-primary-dark">
+                <p>Enter a destination and budget. The planner pulls matching stays, transport, activities, and food suggestions for that destination.</p>
+                <a href="/ai-planner" class="btn-primary-dark">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Launch AI Planner
                 </a>
             </div>
@@ -108,70 +106,24 @@
         <section class="destinations-section">
             <div class="section-title-row">
                 <div>
-                    <h2>Popular Destinations</h2>
-                    <p>Trending travel spots across South Africa and beyond</p>
+                    <h2>Popular Destinations In Africa</h2>
+                    <p>Loaded from the destination catalog and ranked by available travel content.</p>
                 </div>
-                <a href="#" class="view-all-link">View all destinations <i class="fa-solid fa-arrow-right"></i></a>
+                <a href="/explore" class="view-all-link">Explore all <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <!-- FIX: destination cards are now buttons that go straight to results.html
-                 for that destination, instead of being purely decorative -->
-            <div class="destinations-grid">
-                <button class="destination-card" data-destination="Cape Town" style="background-image: url('https://images.unsplash.com/photo-1580060839134-75a5edca2e99?auto=format&fit=crop&w=800&q=80');">
-                    <div class="card-overlay">
-                        <span class="location-tag"><i class="fa-solid fa-location-dot"></i> Western Cape</span>
-                        <h3>Cape Town</h3>
-                        <p>South Africa</p>
-                    </div>
-                </button>
-
-                <button class="destination-card" data-destination="Durban" style="background-image: url('https://images.unsplash.com/photo-1580983597394-171887019688?auto=format&fit=crop&w=800&q=80');">
-                    <div class="card-overlay">
-                        <span class="location-tag"><i class="fa-solid fa-location-dot"></i> KwaZulu-Natal</span>
-                        <h3>Durban</h3>
-                        <p>South Africa</p>
-                    </div>
-                </button>
-
-                <button class="destination-card" data-destination="Johannesburg" style="background-image: url('https://images.unsplash.com/photo-1577948000111-9c970dfe3743?auto=format&fit=crop&w=800&q=80');">
-                    <div class="card-overlay">
-                        <span class="location-tag"><i class="fa-solid fa-location-dot"></i> Gauteng</span>
-                        <h3>Johannesburg</h3>
-                        <p>South Africa</p>
-                    </div>
-                </button>
-
-                <button class="destination-card" data-destination="Kruger Park" style="background-image: url('https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80');">
-                    <div class="card-overlay">
-                        <span class="location-tag"><i class="fa-solid fa-location-dot"></i> Mpumalanga</span>
-                        <h3>Kruger Park</h3>
-                        <p>South Africa</p>
-                    </div>
-                </button>
+            <div class="destinations-grid" id="popularDestinations">
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <p>Loading destinations...</p>
+                </div>
             </div>
         </section>
-
     </main>
 
-    <script>
-        // Search form -> go to results.html?destination=...
-        document.getElementById('searchForm').addEventListener('submit', function (e) {
-            e.preventDefault(); // FIX: was previously missing, so this used to try a real page navigation to nowhere
-            const destination = document.getElementById('destinationInput').value.trim();
-            if (!destination) return;
-            window.location.href = '../pages/results.html?destination=' + encodeURIComponent(destination);
-        });
-
-        // Popular destination cards -> go straight to results.html for that place
-        document.querySelectorAll('.destination-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const destination = card.dataset.destination;
-                window.location.href = '../pages/results.html?destination=' + encodeURIComponent(destination);
-            });
-        });
-    </script>
-    <script type="module" src="../../firebase-config/firebase-config.js"></script>
-    <script type="module" src="../../firebase-config/firestore-service.js"></script>
-    <script type="module" src="../../firebase-config/auth-guard.js"></script>
+    <script type="module" src="/firebase-config/firebase-config.js"></script>
+    <script type="module" src="/firebase-config/firestore-service.js"></script>
+    <script type="module" src="/firebase-config/auth-guard.js"></script>
+    <script src="/front-end/js/home.js" defer></script>
 </body>
 </html>

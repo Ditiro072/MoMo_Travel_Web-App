@@ -27,3 +27,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 export { app, auth, db };
+
+window.FirebaseApp = app;
+window.FirebaseAuth = auth;
+window.FirebaseDb = db;

@@ -86,6 +86,13 @@ function addCartToTrips() {
   trips.unshift(trip); // newest first
   localStorage.setItem(TRIPS_KEY, JSON.stringify(trips));
 
+  const user = window.FirebaseAuth?.currentUser;
+  if (user && window.FirestoreService?.addTrip) {
+    window.FirestoreService.addTrip(user.uid, trip).catch(error => {
+      console.warn("Trip saved locally but Firestore sync failed:", error);
+    });
+  }
+
   clearCart();
   return trip;
 }
