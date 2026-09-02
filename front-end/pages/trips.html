@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Trips - MTN MoMo Travel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="nav-wrapper">
+            <div class="nav-left">
+                <a href="home.html" class="logo">
+                    <span class="logo-accent">MTN</span>
+                    <span class="logo-momo">MoMo</span>
+                    <span class="logo-sub">Travel</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="home.html">Home</a>
+                    <a href="trips.html" class="active">My Trips</a>
+                    <a href="results.html">Explore</a>
+                    <a href="trips.html">Bookings</a>
+                    <a href="journeyfund.html">JourneyFund</a>
+                </nav>
+            </div>
+            <div class="nav-right">
+                <a href="#" class="user-profile">
+                    <div class="avatar">N</div>
+                    <div class="user-info"><span class="user-name">Nhlakanipho</span></div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <div class="section-title-row">
+            <div>
+                <h2>My Trips</h2>
+                <p>Everything you've added from Explore, grouped by trip.</p>
+            </div>
+            <a href="home.html" class="btn-primary-dark" style="background-color: var(--momo-yellow); color: var(--momo-black);">
+                <i class="fa-solid fa-plus"></i> Plan a new trip
+            </a>
+        </div>
+
+        <div id="tripsList" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <!-- Trip cards rendered by trips.js -->
+        </div>
+    </main>
+
+    <script src="../js/cart.js"></script>
+    <script src="../js/trips.js"></script>
+</body>
+</html>
