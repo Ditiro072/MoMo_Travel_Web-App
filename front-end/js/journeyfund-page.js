@@ -1,365 +1,260 @@
-/* ==========================================================
-   MTN MoMo Travel — JourneyFund page wiring
-   Depends on: cart.js (getTrips), momo-service.js (requestToPay,
-   mintVoucher), journeyfund.js (funding requests + voucher store)
-   ========================================================== */
+let trips = getTrips();
 
-const trips = getTrips();
-let selectedTrip = null;
-let selectedItem = null;
-let fundMode = "self";
+const checkoutTripSelect = document.getElementById("checkoutTripSelect");
+const memberTripSelect = document.getElementById("memberTripSelect");
+const inviteModalOverlay = document.getElementById("inviteModalOverlay");
 
-// --- Populate trip dropdown ---
-const tripSelect = document.getElementById("tripSelect");
-trips.forEach(trip => {
-  const opt = document.createElement("option");
-  opt.value = trip.id;
-  opt.textContent = `${trip.destination} — ${trip.items.length} item${trip.items.length === 1 ? "" : "s"}`;
-  tripSelect.appendChild(opt);
-});
+function money(value) {
+  return `R ${Number(value || 0).toLocaleString("en-ZA")}`;
+}
 
-const itemSelect = document.getElementById("itemSelect");
+function activeTrips() {
+  return trips.filter(trip => (trip.status || "planned") !== "cancelled");
+}
 
-tripSelect.addEventListener("change", () => {
-  selectedTrip = trips.find(t => t.id === tripSelect.value) || null;
-  selectedItem = null;
-  itemSelect.innerHTML = "";
+function refreshTrips() {
+  trips = getTrips();
+  populateTripSelects();
+  renderCheckoutSummary();
+  renderMembers();
+}
 
-  if (!selectedTrip) {
-    itemSelect.disabled = true;
-    itemSelect.innerHTML = `<option value="">Select a trip first…</option>`;
-    hideItemPreview();
-    updateSubmitState();
+function populateTripSelect(select, placeholder, includePaid = false) {
+  const currentValue = select.value;
+  select.disabled = false;
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+
+  activeTrips()
+    .filter(trip => includePaid || (trip.status || "planned") !== "paid")
+    .forEach(trip => {
+      const option = document.createElement("option");
+      option.value = trip.id;
+      option.textContent = `${trip.destination}${trip.dates ? ` - ${formatTripDate(trip.dates)}` : ""} - ${money(trip.total)}`;
+      select.appendChild(option);
+    });
+
+  select.value = [...select.options].some(option => option.value === currentValue) ? currentValue : "";
+}
+
+function populateTripSelects() {
+  populateTripSelect(checkoutTripSelect, "Select a trip...");
+  populateTripSelect(memberTripSelect, "Select a trip...", true);
+
+  if (activeTrips().length === 0) {
+    checkoutTripSelect.innerHTML = `<option value="">No active trips yet</option>`;
+    memberTripSelect.innerHTML = `<option value="">No active trips yet</option>`;
+    checkoutTripSelect.disabled = true;
+    memberTripSelect.disabled = true;
+  }
+}
+
+function formatTripDate(value) {
+  if (!value) return "";
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function refreshWalletBalance() {
+  document.getElementById("jf-balance").textContent = money(getWalletBalance());
+}
+
+document.getElementById("addFundsBtn").addEventListener("click", async () => {
+  const raw = prompt("Amount to add to your virtual card", "5000");
+  const amount = Number(raw);
+  if (!amount || amount <= 0) return;
+
+  const response = await requestToPay({
+    msisdn: "46733123453",
+    amount,
+    note: "JourneyFund virtual card top-up",
+  });
+
+  if (!response.success) {
+    showToast("Top-up failed");
     return;
   }
 
-  itemSelect.disabled = false;
-  itemSelect.innerHTML = `<option value="">Select an item…</option>`;
-  selectedTrip.items.forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item.id;
-    opt.textContent = `${item.name} — R${item.price}`;
-    itemSelect.appendChild(opt);
+  adjustWalletBalance(amount, "virtual_card_topup");
+  addExpense({
+    type: "topup",
+    amount,
+    label: "Virtual card top-up",
+    reference: response.momoReferenceId,
   });
-  hideItemPreview();
-  updateSubmitState();
+  refreshWalletBalance();
+  renderCheckoutSummary();
+  renderExpenses();
+  showToast(`${money(amount)} added to your virtual card`);
 });
 
-itemSelect.addEventListener("change", () => {
-  selectedItem = selectedTrip ? selectedTrip.items.find(i => i.id === itemSelect.value) : null;
-  if (selectedItem) {
-    showItemPreview(selectedItem);
-  } else {
-    hideItemPreview();
-  }
-  updateSubmitState();
-});
+document.getElementById("sendFundsBtn").addEventListener("click", async () => {
+  const msisdn = prompt("Recipient MoMo number", "46733123453");
+  if (!msisdn) return;
+  const amount = Number(prompt("Amount to send", "500"));
+  if (!amount || amount <= 0) return;
 
-function showItemPreview(item) {
-  const preview = document.getElementById("itemPreview");
-  document.getElementById("itemPreviewIcon").className = `fa-solid ${item.icon}`;
-  document.getElementById("itemPreviewName").textContent = item.name;
-  document.getElementById("itemPreviewLocation").textContent = item.location;
-  document.getElementById("itemPreviewPrice").textContent = `R${item.price}`;
-  document.getElementById("itemPreviewBadge").innerHTML = item.momoAccepted
-    ? `<span class="momo-badge accepted"><i class="fa-solid fa-circle-check"></i> Accepts MTN MoMo</span>`
-    : `<span class="momo-badge not-accepted"><i class="fa-solid fa-circle-xmark"></i> MoMo not accepted — can't fund via app</span>`;
-  preview.classList.add("show");
-}
-
-function hideItemPreview() {
-  document.getElementById("itemPreview").classList.remove("show");
-}
-
-// --- Fund mode toggle (self / friend) ---
-document.querySelectorAll(".jf-mode-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".jf-mode-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    fundMode = btn.dataset.mode;
-    document.getElementById("friendFields").classList.toggle("show", fundMode === "friend");
-    updateSubmitState();
-  });
-});
-
-// --- Submit button state ---
-const submitBtn = document.getElementById("submitFundRequest");
-
-function updateSubmitState() {
-  if (!selectedItem) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Select a trip item to continue";
+  const debit = adjustWalletBalance(-amount, "send_funds");
+  if (!debit.success) {
+    showToast(debit.message);
     return;
   }
-  if (!selectedItem.momoAccepted) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = "This provider doesn't accept MoMo";
-    return;
-  }
-  if (fundMode === "friend") {
-    const name = document.getElementById("funderName").value.trim();
-    const msisdn = document.getElementById("funderMsisdn").value.trim();
-    if (!name || !msisdn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Enter your friend's details";
-      return;
-    }
-  }
-  submitBtn.disabled = false;
-  submitBtn.textContent = fundMode === "self" ? "Create Request — Pay Now" : "Send Funding Request";
-}
-
-["funderName", "funderMsisdn"].forEach(id => {
-  document.getElementById(id).addEventListener("input", updateSubmitState);
-});
-
-// --- Create the funding request ---
-submitBtn.addEventListener("click", async () => {
-  const request = createFundingRequest({
-    trip: selectedTrip,
-    item: selectedItem,
-    fundMode,
-    funderName: document.getElementById("funderName").value.trim(),
-    funderMsisdn: document.getElementById("funderMsisdn").value.trim(),
-    message: document.getElementById("fundMessage").value.trim(),
-  });
 
   try {
-    await fetch("/api/journeyfund/requests", {
+    const response = await fetch("/api/disburse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
+      body: JSON.stringify({ amount, mobileNumber: msisdn, note: "JourneyFund send funds" }),
     });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.error || "Transfer failed");
+
+    addExpense({
+      type: "transfer",
+      amount,
+      label: `Sent funds to ${msisdn}`,
+      reference: result.reference,
+    });
+    showToast(`${money(amount)} sent`);
   } catch (error) {
-    console.warn("JourneyFund request saved locally; server sync failed:", error);
+    adjustWalletBalance(amount, "send_funds_reversal");
+    showToast(error.message);
   }
 
-  showToast(fundMode === "self" ? "Request created — pay it below" : `Request sent to ${request.funderName}`);
-  renderFundingRequests();
-
-  // Reset the form
-  tripSelect.value = "";
-  itemSelect.innerHTML = `<option value="">Select a trip first…</option>`;
-  itemSelect.disabled = true;
-  hideItemPreview();
-  selectedTrip = null;
-  selectedItem = null;
-  document.getElementById("funderName").value = "";
-  document.getElementById("funderMsisdn").value = "";
-  document.getElementById("fundMessage").value = "";
-  updateSubmitState();
-
-  // If self-funding, jump straight into the payment flow
-  if (fundMode === "self") openPayModal(request);
+  refreshWalletBalance();
+  renderCheckoutSummary();
+  renderExpenses();
 });
 
-// --- Render funding requests list ---
-function renderFundingRequests() {
-  const list = document.getElementById("fundingRequestsList");
-  const requests = getFundingRequests();
-  list.innerHTML = "";
+checkoutTripSelect.addEventListener("change", renderCheckoutSummary);
 
-  if (requests.length === 0) {
-    list.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-solid fa-hand-holding-dollar"></i>
-        <p>No funding requests yet. Create one above once you've added items to a trip.</p>
-      </div>`;
+function renderCheckoutSummary() {
+  const trip = trips.find(item => item.id === checkoutTripSelect.value);
+  const box = document.getElementById("checkoutSummary");
+  const button = document.getElementById("checkoutTripBtn");
+
+  if (!trip) {
+    box.innerHTML = `<div class="empty-state compact"><p>Select a trip to see checkout details.</p></div>`;
+    button.disabled = true;
+    button.textContent = "Checkout Trip";
     return;
   }
 
-  requests.forEach(req => {
-    const card = document.createElement("div");
-    card.className = "fund-request-card";
+  const amountDue = Math.max(0, Number(trip.total || 0) - Number(trip.paidAmount || 0));
+  box.innerHTML = `
+    <div class="checkout-row"><span>Destination</span><strong>${trip.destination}</strong></div>
+    <div class="checkout-row"><span>Trip date</span><strong>${trip.dates ? formatTripDate(trip.dates) : "Not selected"}</strong></div>
+    <div class="checkout-row"><span>Items</span><strong>${trip.items.length}</strong></div>
+    <div class="checkout-row"><span>Amount due</span><strong>${money(amountDue)}</strong></div>
+    <div class="checkout-row"><span>Virtual card balance</span><strong>${money(getWalletBalance())}</strong></div>
+  `;
 
-    const statusLabel = { pending: "Pending", paid: "Paid", declined: "Declined", expired: "Expired" }[req.status];
-    const funderLine = req.fundMode === "self"
-      ? "You're funding this"
-      : `Waiting on ${req.funderName} (${req.funderMsisdn})`;
-
-    let actions = `<span class="fund-request-amount">R${req.amount}</span>`;
-    if (req.status === "pending") {
-      actions += `<button class="btn-fr-pay" data-id="${req.id}"><i class="fa-solid fa-bolt"></i> ${req.fundMode === "self" ? "Pay Now" : "Simulate: Friend Pays"}</button>`;
-      actions += `<button class="btn-fr-cancel" data-cancel="${req.id}">Cancel</button>`;
-    }
-
-    card.innerHTML = `
-      <div class="fund-request-info">
-        <h4>${req.itemName} <span class="status-badge ${req.status}">${statusLabel}</span></h4>
-        <div class="fr-meta">${req.tripDestination} · ${req.itemLocation} · ${funderLine}</div>
-        ${req.message ? `<div class="fr-meta" style="margin-top: 4px; font-style: italic;">"${req.message}"</div>` : ""}
-      </div>
-      <div class="fund-request-actions">${actions}</div>
-    `;
-
-    const payBtn = card.querySelector(".btn-fr-pay");
-    if (payBtn) payBtn.addEventListener("click", () => openPayModal(req));
-
-    const cancelBtn = card.querySelector(".btn-fr-cancel");
-    if (cancelBtn) cancelBtn.addEventListener("click", () => {
-      updateFundingRequest(req.id, { status: "declined" });
-      renderFundingRequests();
-      showToast("Request cancelled");
-    });
-
-    list.appendChild(card);
-  });
+  button.disabled = amountDue <= 0;
+  button.textContent = amountDue <= 0 ? "Trip Already Paid" : `Pay ${money(amountDue)}`;
 }
 
-// --- Payment modal (simulated MoMo Request-to-Pay) ---
-const payModalOverlay = document.getElementById("payModalOverlay");
-const modalPinStep = document.getElementById("modalPinStep");
-const modalProcessing = document.getElementById("modalProcessing");
-const modalSuccess = document.getElementById("modalSuccess");
-let activeRequest = null;
+document.getElementById("checkoutTripBtn").addEventListener("click", () => {
+  const trip = trips.find(item => item.id === checkoutTripSelect.value);
+  if (!trip) return;
 
-function openPayModal(request) {
-  activeRequest = request;
-  document.getElementById("modalItemDesc").textContent = `${request.itemName} · ${request.tripDestination}`;
-  document.getElementById("modalAmount").textContent = `R${request.amount}`;
-  resetPinBoxes("payPinBoxes");
-  modalPinStep.style.display = "block";
-  modalProcessing.classList.remove("show");
-  modalSuccess.classList.remove("show");
-  payModalOverlay.classList.add("show");
-}
-
-function closePayModal() {
-  payModalOverlay.classList.remove("show");
-}
-
-document.getElementById("cancelPayBtn").addEventListener("click", closePayModal);
-payModalOverlay.addEventListener("click", (e) => {
-  if (e.target === payModalOverlay) closePayModal();
-});
-
-document.getElementById("confirmPayBtn").addEventListener("click", async () => {
-  const pin = getPinBoxValue("payPinBoxes");
-  if (pin.length < 4) {
-    showToast("Enter your 4-digit PIN");
+  const amountDue = Math.max(0, Number(trip.total || 0) - Number(trip.paidAmount || 0));
+  const debit = adjustWalletBalance(-amountDue, "trip_checkout");
+  if (!debit.success) {
+    showToast(debit.message);
     return;
   }
 
-  modalPinStep.style.display = "none";
-  modalProcessing.classList.add("show");
-
-  // Simulated MTN MoMo Request-to-Pay — see momo-service.js
-  const result = await requestToPay({
-    msisdn: activeRequest.fundMode === "self" ? "0821234567" : activeRequest.funderMsisdn,
-    amount: activeRequest.amount,
-    note: `${activeRequest.itemName} — ${activeRequest.tripDestination}`,
+  updateTrip(trip.id, {
+    status: "paid",
+    paidAt: new Date().toISOString(),
+    paidAmount: Number(trip.paidAmount || 0) + amountDue,
+  });
+  addExpense({
+    type: "payment",
+    amount: amountDue,
+    tripId: trip.id,
+    tripDestination: trip.destination,
+    label: `Checkout for ${trip.destination}`,
+    reference: `CHK-${Date.now().toString(36).toUpperCase()}`,
   });
 
-  modalProcessing.classList.remove("show");
-
-  if (result.success) {
-    // Mark request paid, mint a Travel Voucher, save it to the wallet
-    updateFundingRequest(activeRequest.id, { status: "paid", paidAt: new Date().toISOString() });
-    const voucher = mintVoucher(activeRequest);
-    saveVoucher(voucher);
-
-    document.getElementById("voucherRevealMini").innerHTML = `
-      <div class="voucher-detail-row"><span class="voucher-detail-label" style="color: var(--momo-gray-medium);">Reference</span><span class="voucher-detail-value" style="color: var(--momo-black);">${voucher.reference}</span></div>
-      <div class="voucher-detail-row" style="margin-bottom:0;"><span class="voucher-detail-label" style="color: var(--momo-gray-medium);">PIN</span><span class="voucher-detail-value" style="color: var(--momo-black);">${voucher.pin}</span></div>
-    `;
-    modalSuccess.classList.add("show");
-    renderFundingRequests();
-  } else {
-    showToast("Payment failed — please try again");
-    closePayModal();
-  }
+  showToast(`${trip.destination} checkout complete`);
+  refreshWalletBalance();
+  refreshTrips();
+  renderExpenses();
 });
 
-document.getElementById("closeSuccessBtn").addEventListener("click", () => {
-  closePayModal();
-  renderVouchers();
-  document.getElementById("voucherGrid").scrollIntoView({ behavior: "smooth", block: "start" });
+document.getElementById("openInviteModalBtn").addEventListener("click", () => {
+  inviteModalOverlay.classList.add("show");
+  document.getElementById("memberName").focus();
 });
 
-// --- PIN box helpers (same auto-advance pattern as the auth pages) ---
-function resetPinBoxes(containerId) {
-  const boxes = document.querySelectorAll(`#${containerId} input`);
-  boxes.forEach(b => { b.value = ""; });
-  if (boxes[0]) boxes[0].focus();
+document.getElementById("closeInviteModalBtn").addEventListener("click", closeInviteModal);
+inviteModalOverlay.addEventListener("click", event => {
+  if (event.target === inviteModalOverlay) closeInviteModal();
+});
+
+function closeInviteModal() {
+  inviteModalOverlay.classList.remove("show");
 }
 
-function getPinBoxValue(containerId) {
-  return Array.from(document.querySelectorAll(`#${containerId} input`)).map(i => i.value).join("");
-}
+document.getElementById("inviteMemberBtn").addEventListener("click", () => {
+  const tripId = memberTripSelect.value;
+  const name = document.getElementById("memberName").value.trim();
+  const msisdn = document.getElementById("memberMsisdn").value.trim();
 
-document.querySelectorAll("#payPinBoxes input").forEach((input, index, all) => {
-  input.addEventListener("input", () => {
-    input.value = input.value.replace(/[^0-9]/g, "").slice(-1);
-    if (input.value && index < all.length - 1) all[index + 1].focus();
-  });
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Backspace" && !input.value && index > 0) all[index - 1].focus();
-  });
-});
-
-// --- Render voucher wallet ---
-function renderVouchers() {
-  const grid = document.getElementById("voucherGrid");
-  const vouchers = getVouchers();
-  grid.innerHTML = "";
-
-  if (vouchers.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <i class="fa-solid fa-ticket"></i>
-        <p>No vouchers yet — pay a funding request above to mint your first Travel Voucher.</p>
-      </div>`;
+  if (!tripId || !name || !msisdn) {
+    showToast("Select a trip and enter member details");
     return;
   }
 
-  vouchers.forEach(v => {
-    const card = document.createElement("div");
-    card.className = `voucher-ticket ${v.status === "redeemed" ? "redeemed" : ""}`;
-    card.innerHTML = `
-      <div class="voucher-top">
-        <span class="voucher-brand">MoMo JourneyPass</span>
-        <span class="voucher-status-pill ${v.status}">${v.status}</span>
-      </div>
-      <div class="voucher-item-name">${v.itemName}</div>
-      <div class="voucher-item-loc"><i class="fa-solid fa-location-dot"></i> ${v.itemLocation}, ${v.tripDestination}</div>
-      <div class="voucher-divider"></div>
-      <div class="voucher-detail-row">
-        <span class="voucher-detail-label">Reference</span>
-        <span style="display:flex; align-items:center; gap:6px;">
-          <span class="voucher-detail-value">${v.reference}</span>
-          <button class="voucher-copy-btn" data-copy="${v.reference}" title="Copy reference"><i class="fa-regular fa-copy"></i></button>
-        </span>
-      </div>
-      <div class="voucher-detail-row">
-        <span class="voucher-detail-label">PIN</span>
-        <span class="voucher-pin-row">
-          <span class="voucher-detail-value pin-value" data-pin="${v.pin}">••••</span>
-          <button class="voucher-reveal-btn" data-reveal>Reveal</button>
-        </span>
-      </div>
-      <div class="voucher-amount-row">
-        <span class="voucher-amount">R${v.amount}</span>
-        <span class="voucher-expiry">Expires ${new Date(v.expiresAt).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}</span>
-      </div>
-    `;
+  addTripMember(tripId, { name, msisdn });
+  document.getElementById("memberName").value = "";
+  document.getElementById("memberMsisdn").value = "";
+  closeInviteModal();
+  refreshTrips();
+  showToast(`Invite sent to ${name}`);
+});
 
-    card.querySelector("[data-reveal]").addEventListener("click", (e) => {
-      const pinSpan = card.querySelector(".pin-value");
-      const isHidden = pinSpan.textContent === "••••";
-      pinSpan.textContent = isHidden ? pinSpan.dataset.pin : "••••";
-      e.target.textContent = isHidden ? "Hide" : "Reveal";
-    });
+function renderMembers() {
+  const list = document.getElementById("memberList");
+  const members = trips.flatMap(trip =>
+    (trip.members || []).map(member => ({ ...member, tripDestination: trip.destination }))
+  );
 
-    card.querySelector("[data-copy]").addEventListener("click", (e) => {
-      navigator.clipboard?.writeText(e.currentTarget.dataset.copy);
-      showToast("Reference copied");
-    });
+  if (!members.length) {
+    list.innerHTML = `<div class="empty-state compact"><p>No invited members yet.</p></div>`;
+    return;
+  }
 
-    grid.appendChild(card);
-  });
+  list.innerHTML = members.map(member => `
+    <div class="member-row">
+      <span><strong>${member.name}</strong><small>${member.tripDestination} - ${member.msisdn}</small></span>
+      <span class="status-badge pending">${member.status}</span>
+    </div>
+  `).join("");
 }
 
-// --- Toast ---
+function renderExpenses() {
+  const list = document.getElementById("expenseList");
+  const expenses = getExpenses();
+
+  if (!expenses.length) {
+    list.innerHTML = `<div class="empty-state compact"><i class="fa-solid fa-receipt"></i><p>No expenses yet.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = expenses.map(expense => `
+    <div class="expense-row ${expense.type}">
+      <div>
+        <strong>${expense.label}</strong>
+        <span>${new Date(expense.createdAt).toLocaleString("en-ZA")} ${expense.reference ? `- ${expense.reference}` : ""}</span>
+      </div>
+      <strong>${expense.type === "refund" || expense.type === "topup" ? "+" : "-"}${money(expense.amount)}</strong>
+    </div>
+  `).join("");
+}
+
 let toastTimer;
 function showToast(message) {
   const toast = document.getElementById("toast");
@@ -369,11 +264,12 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
-// --- Init ---
-if (trips.length === 0) {
-  tripSelect.innerHTML = `<option value="">No trips yet — add one from Explore first</option>`;
-  tripSelect.disabled = true;
-}
-renderFundingRequests();
-renderVouchers();
-updateSubmitState();
+populateTripSelects();
+refreshWalletBalance();
+renderCheckoutSummary();
+renderMembers();
+renderExpenses();
+window.addEventListener("momo-wallet-updated", () => {
+  refreshWalletBalance();
+  renderCheckoutSummary();
+});

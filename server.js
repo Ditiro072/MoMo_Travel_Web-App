@@ -11,6 +11,22 @@ const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const FRONT_END = path.join(ROOT, "front-end");
 const PAGES = path.join(FRONT_END, "pages");
+const ENV_FILE = path.join(ROOT, ".env");
+
+function loadEnvFile() {
+  if (!fs.existsSync(ENV_FILE)) return;
+  const source = fs.readFileSync(ENV_FILE, "utf8");
+  source.split(/\r?\n/).forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) return;
+    const [key, ...parts] = trimmed.split("=");
+    const value = parts.join("=").trim().replace(/^['"]|['"]$/g, "");
+    if (key.trim()) process.env[key.trim()] = value;
+  });
+}
+
+loadEnvFile();
+const MOMO_BASE_URL = process.env.MOMO_BASE_URL || "https://sandbox.momodeveloper.mtn.com";
 
 const AFRICAN_COUNTRIES = new Set([
   "South Africa",
@@ -172,6 +188,90 @@ function categoryFromRequest(value) {
   return CATEGORY_CONFIG[key] ? key : "stays";
 }
 
+function momoProductConfig(product) {
+  const prefix = `MOMO_${product.toUpperCase()}`;
+  return {
+    product,
+    subscriptionKey: process.env[`${prefix}_SUBSCRIPTION_KEY`],
+    apiUser: process.env[`${prefix}_API_USER_ID`] || process.env.MOMO_API_USER_ID,
+    apiKey: process.env[`${prefix}_API_KEY`] || process.env.MOMO_API_KEY,
+    currency: process.env.MOMO_CURRENCY || "EUR",
+    targetEnvironment: process.env.MOMO_TARGET_ENVIRONMENT || "sandbox",
+    callbackUrl: process.env.MOMO_CALLBACK_URL || "https://webhook.site",
+  };
+}
+
+function hasMomoCredentials(product) {
+  const config = momoProductConfig(product);
+  return Boolean(config.subscriptionKey && config.apiUser && config.apiKey);
+}
+
+async function getMomoAccessToken(product) {
+  const config = momoProductConfig(product);
+  const credentials = Buffer.from(`${config.apiUser}:${config.apiKey}`).toString("base64");
+  const response = await axios.post(`${MOMO_BASE_URL}/${product}/token/`, null, {
+    headers: {
+      Authorization: `Basic ${credentials}`,
+      "Ocp-Apim-Subscription-Key": config.subscriptionKey,
+    },
+  });
+  return response.data.access_token;
+}
+
+async function callMomoTransaction(product, pathName, body, referenceId = randomUUID()) {
+  const config = momoProductConfig(product);
+  const token = await getMomoAccessToken(product);
+  const response = await axios.post(`${MOMO_BASE_URL}/${product}/v1_0/${pathName}`, body, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "Ocp-Apim-Subscription-Key": config.subscriptionKey,
+      "X-Callback-Url": config.callbackUrl,
+      "X-Reference-Id": referenceId,
+      "X-Target-Environment": config.targetEnvironment,
+    },
+    validateStatus: status => status >= 200 && status < 300,
+  });
+  return { response, referenceId };
+}
+
+function mask(value) {
+  if (!value) return "";
+  return value.length <= 6 ? "******" : `${value.slice(0, 3)}...${value.slice(-3)}`;
+}
+
+function writeEnvConfig(values) {
+  const allowed = [
+    "GOOGLE_MAPS_API_KEY",
+    "MOMO_BASE_URL",
+    "MOMO_TARGET_ENVIRONMENT",
+    "MOMO_CURRENCY",
+    "MOMO_CALLBACK_URL",
+    "MOMO_API_USER_ID",
+    "MOMO_API_KEY",
+    "MOMO_COLLECTION_SUBSCRIPTION_KEY",
+    "MOMO_COLLECTION_API_USER_ID",
+    "MOMO_COLLECTION_API_KEY",
+    "MOMO_DISBURSEMENT_SUBSCRIPTION_KEY",
+    "MOMO_DISBURSEMENT_API_USER_ID",
+    "MOMO_DISBURSEMENT_API_KEY",
+    "MOMO_REMITTANCE_SUBSCRIPTION_KEY",
+    "MOMO_REMITTANCE_API_USER_ID",
+    "MOMO_REMITTANCE_API_KEY",
+  ];
+  const next = {};
+  allowed.forEach(key => {
+    next[key] = values[key] !== undefined ? String(values[key]).trim() : (process.env[key] || "");
+    process.env[key] = next[key];
+  });
+  const body = [
+    "# MTN MoMo sandbox configuration",
+    ...allowed.map(key => `${key}=${next[key]}`),
+    "",
+  ].join("\n");
+  fs.writeFileSync(ENV_FILE, body, "utf8");
+}
+
 function priceFromGooglePlace(place, category) {
   const levels = {
     PRICE_LEVEL_FREE: 0,
@@ -284,6 +384,7 @@ app.get(["/explore", "/results"], (req, res) => sendPage(res, "results.html"));
 app.get(["/trips", "/bookings"], (req, res) => sendPage(res, "trips.html"));
 app.get("/journeyfund", (req, res) => sendPage(res, "journeyfund.html"));
 app.get("/ai-planner", (req, res) => sendPage(res, "ai-planner.html"));
+app.get("/momo-settings", (req, res) => sendPage(res, "momo-settings.html"));
 app.get("/login", (req, res) =>
   res.sendFile(path.join(FRONT_END, "signup&login", "login.html"))
 );
@@ -391,23 +492,185 @@ app.post("/api/journeyfund/requests", async (req, res) => {
 });
 
 app.post("/api/journeyfund/pay", async (req, res) => {
+  if (hasMomoCredentials("collection")) {
+    try {
+      const amount = String(req.body.amount || "0");
+      const payerMsisdn = String(req.body.msisdn || "").replace(/[^0-9]/g, "");
+      const { referenceId } = await callMomoTransaction("collection", "requesttopay", {
+        amount,
+        currency: momoProductConfig("collection").currency,
+        externalId: `JF-${Date.now()}`,
+        payer: {
+          partyIdType: "MSISDN",
+          partyId: payerMsisdn,
+        },
+        payerMessage: "MoMo Travel JourneyFund payment",
+        payeeNote: String(req.body.note || "JourneyFund payment").replace(/[^\w\s.-]/g, ""),
+      });
+      return res.status(202).json({
+        success: true,
+        status: "PENDING",
+        mode: "momo-sandbox",
+        reference: referenceId,
+        amount: req.body.amount,
+      });
+    } catch (error) {
+      console.error("MoMo collection request failed:", error.response?.data || error.message);
+      return res.status(502).json({
+        success: false,
+        error: "MoMo collection request failed. Check sandbox keys and MSISDN format.",
+        details: error.response?.data || error.message,
+      });
+    }
+  }
+
   const reference = `JF-${Date.now().toString(36).toUpperCase()}`;
   res.json({
     success: true,
     status: "SUCCESSFUL",
-    mode: process.env.JOURNEYFUND_API_KEY ? "api-ready" : "demo",
+    mode: "demo",
     reference,
     amount: req.body.amount,
   });
 });
 
-app.post("/api/disburse", (req, res) => {
+app.post("/api/disburse", async (req, res) => {
+  if (hasMomoCredentials("disbursement")) {
+    try {
+      const amount = String(req.body.amount || "0");
+      const payeeMsisdn = String(req.body.mobileNumber || "").replace(/[^0-9]/g, "");
+      const { referenceId } = await callMomoTransaction("disbursement", "transfer", {
+        amount,
+        currency: momoProductConfig("disbursement").currency,
+        externalId: req.body.reference || `DIS-${Date.now()}`,
+        payee: {
+          partyIdType: "MSISDN",
+          partyId: payeeMsisdn,
+        },
+        payerMessage: "MoMo Travel transfer",
+        payeeNote: String(req.body.note || "MoMo Travel transfer").replace(/[^\w\s.-]/g, ""),
+      });
+      return res.status(202).json({
+        success: true,
+        mode: "momo-sandbox",
+        reference: referenceId,
+        message: "Disbursement accepted by MTN MoMo sandbox.",
+      });
+    } catch (error) {
+      console.error("MoMo disbursement failed:", error.response?.data || error.message);
+      return res.status(502).json({
+        success: false,
+        error: "MoMo disbursement failed. Check sandbox keys and MSISDN format.",
+        details: error.response?.data || error.message,
+      });
+    }
+  }
+
   res.json({
     success: true,
-    mode: process.env.MOMO_DISBURSEMENT_API_KEY ? "sandbox" : "demo",
+    mode: "demo",
     reference: req.body.reference || `REF-${Date.now()}`,
     message: "Refund accepted by server.",
   });
+});
+
+app.post("/api/remittance", async (req, res) => {
+  if (hasMomoCredentials("remittance")) {
+    try {
+      const amount = String(req.body.amount || "0");
+      const payeeMsisdn = String(req.body.mobileNumber || "").replace(/[^0-9]/g, "");
+      const { referenceId } = await callMomoTransaction("remittance", "transfer", {
+        amount,
+        currency: momoProductConfig("remittance").currency,
+        externalId: req.body.reference || `REM-${Date.now()}`,
+        payee: {
+          partyIdType: "MSISDN",
+          partyId: payeeMsisdn,
+        },
+        payerMessage: "MoMo Travel remittance",
+        payeeNote: String(req.body.note || "MoMo Travel remittance").replace(/[^\w\s.-]/g, ""),
+      });
+      return res.status(202).json({
+        success: true,
+        mode: "momo-sandbox",
+        reference: referenceId,
+      });
+    } catch (error) {
+      console.error("MoMo remittance failed:", error.response?.data || error.message);
+      return res.status(502).json({
+        success: false,
+        error: "MoMo remittance failed. Check sandbox keys and MSISDN format.",
+        details: error.response?.data || error.message,
+      });
+    }
+  }
+
+  res.json({
+    success: true,
+    mode: "demo",
+    reference: req.body.reference || `REM-${Date.now()}`,
+    message: "Remittance accepted in demo mode.",
+  });
+});
+
+app.get("/api/momo/config", (req, res) => {
+  const products = ["collection", "disbursement", "remittance"].reduce((acc, product) => {
+    const config = momoProductConfig(product);
+    acc[product] = {
+      configured: hasMomoCredentials(product),
+      subscriptionKey: mask(config.subscriptionKey),
+      apiUser: mask(config.apiUser),
+      apiKey: mask(config.apiKey),
+    };
+    return acc;
+  }, {});
+
+  res.json({
+    baseUrl: MOMO_BASE_URL,
+    targetEnvironment: process.env.MOMO_TARGET_ENVIRONMENT || "sandbox",
+    currency: process.env.MOMO_CURRENCY || "EUR",
+    callbackUrl: process.env.MOMO_CALLBACK_URL || "https://webhook.site",
+    products,
+  });
+});
+
+app.post("/api/momo/config", (req, res) => {
+  writeEnvConfig(req.body || {});
+  res.json({ success: true, message: "MoMo sandbox keys saved. Restart the server if you changed base URL or port settings." });
+});
+
+app.post("/api/momo/provision-user", async (req, res) => {
+  const subscriptionKey = req.body.subscriptionKey || process.env.MOMO_COLLECTION_SUBSCRIPTION_KEY;
+  if (!subscriptionKey) {
+    return res.status(400).json({ error: "A sandbox subscription key is required." });
+  }
+
+  const apiUserId = req.body.apiUserId || randomUUID();
+  try {
+    await axios.post(`${MOMO_BASE_URL}/v1_0/apiuser`, {
+      providerCallbackHost: req.body.providerCallbackHost || "webhook.site",
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+        "Ocp-Apim-Subscription-Key": subscriptionKey,
+        "X-Reference-Id": apiUserId,
+      },
+    });
+
+    const keyResponse = await axios.post(`${MOMO_BASE_URL}/v1_0/apiuser/${apiUserId}/apikey`, null, {
+      headers: {
+        "Ocp-Apim-Subscription-Key": subscriptionKey,
+      },
+    });
+
+    res.status(201).json({ apiUserId, apiKey: keyResponse.data.apiKey });
+  } catch (error) {
+    console.error("MoMo sandbox user provisioning failed:", error.response?.data || error.message);
+    res.status(502).json({
+      error: "MoMo sandbox user provisioning failed.",
+      details: error.response?.data || error.message,
+    });
+  }
 });
 
 app.listen(PORT, () => {

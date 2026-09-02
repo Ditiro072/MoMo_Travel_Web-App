@@ -15,6 +15,8 @@ const destinationSubtitle = document.getElementById("destinationSubtitle");
 const tabBar = document.getElementById("tabBar");
 const listingGrid = document.getElementById("listingGrid");
 const cartBar = document.getElementById("cartBar");
+const tripDateInput = document.getElementById("tripDateInput");
+const cartTripDateInput = document.getElementById("cartTripDateInput");
 
 function money(value) {
   return `R${Number(value || 0).toLocaleString("en-ZA")}`;
@@ -197,6 +199,7 @@ const cartPanelBody = document.getElementById("cartPanelBody");
 
 function openCartPanel() {
   renderCartPanel();
+  cartTripDateInput.value = tripDateInput.value;
   cartOverlay.classList.add("show");
   cartPanel.classList.add("show");
 }
@@ -247,10 +250,15 @@ function renderCartPanel() {
 }
 
 document.getElementById("addToTripBtn").addEventListener("click", () => {
-  const trip = addCartToTrips();
+  const tripDate = cartTripDateInput.value || tripDateInput.value;
+  const trip = addCartToTrips({ dates: tripDate });
   if (!trip) return;
   showToast(`Trip to ${trip.destination} saved!`);
   setTimeout(() => { window.location.href = "/trips"; }, 700);
+});
+
+tripDateInput.addEventListener("change", () => {
+  cartTripDateInput.value = tripDateInput.value;
 });
 
 let toastTimer;

@@ -67,12 +67,13 @@ async function cancelTrip(tripId) {
   let trips = getTrips();
   const tripToCancel = trips.find(t => t.id === tripId);
   
-  if (!tripToCancel) return;
+  if (!tripToCancel || tripToCancel.status === "cancelled") return;
 
   // For sandbox testing, use an approved test MSISDN
   const testMobileNumber = "46733123453"; // Example MoMo test number
+  const refundAmount = Number(tripToCancel.paidAmount || 0);
 
-  showNotification("Initiating MoMo refund...");
+  showNotification(refundAmount > 0 ? "Initiating MoMo refund..." : "Cancelling unpaid trip...");
   
   // Disable the specific cancel button to prevent duplicate requests
   const tripCardItems = document.querySelector(`#items-${tripId}`);
@@ -86,7 +87,7 @@ async function cancelTrip(tripId) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-              amount: tripToCancel.total,
+              amount: refundAmount,
               mobileNumber: testMobileNumber,
               reference: `REF-${tripId}`,
               note: "Trip Cancellation Refund"
@@ -96,15 +97,29 @@ async function cancelTrip(tripId) {
       const result = await response.json();
 
       if (result.success) {
-          trips = trips.filter(trip => trip.id !== tripId);
-          if (typeof setTrips === 'function') {
-            setTrips(trips);
-          } else {
-            localStorage.setItem(TRIPS_KEY, JSON.stringify(trips)); 
+          updateTrip(tripId, {
+            status: "cancelled",
+            cancelledAt: new Date().toISOString(),
+            refundReference: result.reference,
+            refundedAmount: refundAmount,
+            paidAmount: 0,
+          });
+          if (refundAmount > 0) {
+            adjustWalletBalance(refundAmount, "trip_refund");
+            addExpense({
+              type: "refund",
+              amount: refundAmount,
+              tripId,
+              tripDestination: tripToCancel.destination,
+              label: `Refund for cancelled trip to ${tripToCancel.destination}`,
+              reference: result.reference,
+            });
           }
           
           renderTrips();
-          showNotification("Trip canceled and R" + tripToCancel.total + " refunded via MoMo.");
+          showNotification(refundAmount > 0
+            ? "Trip cancelled and R" + refundAmount + " returned to your virtual card."
+            : "Trip cancelled.");
       } else {
           showNotification("Refund failed: " + result.error);
           
@@ -152,22 +167,21 @@ function renderTrips() {
     card.style.backgroundColor = "#fff";
 
     const momoAcceptedCount = trip.items.filter(i => i.momoAccepted).length;
+    const status = trip.status || "planned";
+    const isCancelled = status === "cancelled";
 
     card.innerHTML = `
       <div class="trip-card-header" style="display: flex; justify-content: space-between; padding: 1.5rem; cursor: pointer; background: #FAFAFA; border-bottom: 1px solid #E0E0E0;">
         <div class="trip-card-title">
-          <h3 style="margin: 0 0 4px 0; font-size: 1.25rem;">${trip.destination}</h3>
-          <span style="font-size: 0.85rem; color: #666;">${formatDate(trip.createdAt)} · ${trip.items.length} item${trip.items.length === 1 ? "" : "s"} · ${momoAcceptedCount}/${trip.items.length} accept MoMo</span>
+          <h3 style="margin: 0 0 4px 0; font-size: 1.25rem;">${trip.destination} <span class="status-badge ${status}">${status}</span></h3>
+          <span style="font-size: 0.85rem; color: #666;">${formatDate(trip.createdAt)} · ${trip.items.length} item${trip.items.length === 1 ? "" : "s"} · ${momoAcceptedCount}/${trip.items.length} accept MoMo${trip.paidAmount ? ` · R${trip.paidAmount} paid` : ""}</span>
         </div>
         <div class="trip-card-total" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
           <div style="text-align: right;">
              <strong style="font-size: 1.2rem;">R${trip.total}</strong>
              <span style="display: block; font-size: 0.75rem; color: #666;">estimated total</span>
           </div>
-          <!-- New Cancel Button -->
-          <button class="cancel-trip-btn" style="background: transparent; border: 1px solid #dc3545; color: #dc3545; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-             Cancel Trip
-          </button>
+          ${isCancelled ? "" : `<button class="cancel-trip-btn" style="background: transparent; border: 1px solid #dc3545; color: #dc3545; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">Cancel Trip</button>`}
         </div>
       </div>
       <div class="trip-card-items" id="items-${trip.id}" style="display: none; padding: 1.5rem;"></div>
@@ -178,7 +192,7 @@ function renderTrips() {
     const cancelBtn = card.querySelector(".cancel-trip-btn");
 
     // Cancel Button Event Listener
-    cancelBtn.addEventListener("click", (e) => {
+    if (cancelBtn) cancelBtn.addEventListener("click", (e) => {
       e.stopPropagation(); // Prevents the accordion from toggling when clicking the button
       if (confirm("Are you sure you want to cancel this trip?")) {
         cancelTrip(trip.id);

@@ -6,6 +6,7 @@ const budgetSlider = document.getElementById("budget-slider");
 const budgetDisplay = document.getElementById("budget-display");
 const submitBtn = document.getElementById("submit-btn");
 const planResults = document.getElementById("planResults");
+let latestPlan = null;
 
 function money(value) {
   return `R ${Number(value || 0).toLocaleString("en-ZA")}`;
@@ -78,6 +79,7 @@ plannerForm.addEventListener("submit", async event => {
 });
 
 function renderPlan(data) {
+  latestPlan = data;
   const budgetClass = data.withinBudget === false ? "over-budget" : "within-budget";
   const budgetText = data.withinBudget === false
     ? "Above selected budget"
@@ -96,9 +98,14 @@ function renderPlan(data) {
       </div>
     </div>
     <div class="plan-list"></div>
-    <a class="btn-primary-dark plan-explore-link" href="/explore?destination=${encodeURIComponent(data.destination)}">
-      Explore more options <i class="fa-solid fa-arrow-right"></i>
-    </a>
+    <div class="plan-actions">
+      <button class="btn-add-trip" id="addGeneratedTripBtn" type="button">
+        <i class="fa-solid fa-plus"></i> Add Trip
+      </button>
+      <a class="btn-primary-dark plan-explore-link" href="/explore?destination=${encodeURIComponent(data.destination)}">
+        Explore more options <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
   `;
 
   const list = planResults.querySelector(".plan-list");
@@ -116,4 +123,26 @@ function renderPlan(data) {
     `;
     list.appendChild(row);
   });
+
+  document.getElementById("addGeneratedTripBtn").addEventListener("click", () => {
+    const trip = saveTripFromItems({
+      destination: latestPlan.destination,
+      dates: datesInput.value.trim(),
+      travelers: travelersInput.value.trim(),
+      items: latestPlan.plan,
+      source: "ai-planner",
+    });
+    if (!trip) return;
+    showPlannerToast(`Trip to ${trip.destination} added`);
+    setTimeout(() => { window.location.href = "/trips"; }, 650);
+  });
+}
+
+let plannerToastTimer;
+function showPlannerToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(plannerToastTimer);
+  plannerToastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
 }

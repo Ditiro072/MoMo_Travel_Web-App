@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoMo Sandbox Keys - MTN MoMo Travel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/front-end/pages/styles.css">
+</head>
+<body>
+    <header class="top-nav">
+        <div class="nav-wrapper">
+            <div class="nav-left">
+                <a href="/home" class="logo">
+                    <span class="logo-accent">MTN</span>
+                    <span class="logo-momo">MoMo</span>
+                    <span class="logo-sub">Travel</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="/home">Home</a>
+                    <a href="/explore">Explore</a>
+                    <a href="/trips">My Trips</a>
+                    <a href="/journeyfund">JourneyFund</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-container settings-page">
+        <section class="settings-header">
+            <span class="badge"><i class="fa-solid fa-shield-halved"></i> Sandbox</span>
+        </section>
+
+        <form class="settings-form" id="momoSettingsForm">
+            <div class="settings-grid">
+                <div class="jf-panel">
+                    <h2>Shared sandbox</h2>
+                    <div class="jf-field">
+                        <label for="MOMO_BASE_URL">Base URL</label>
+                        <input id="MOMO_BASE_URL" name="MOMO_BASE_URL" value="https://sandbox.momodeveloper.mtn.com">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_TARGET_ENVIRONMENT">Target environment</label>
+                        <input id="MOMO_TARGET_ENVIRONMENT" name="MOMO_TARGET_ENVIRONMENT" value="sandbox">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_CURRENCY">Currency</label>
+                        <input id="MOMO_CURRENCY" name="MOMO_CURRENCY" value="EUR">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_CALLBACK_URL">Callback URL</label>
+                        <input id="MOMO_CALLBACK_URL" name="MOMO_CALLBACK_URL" placeholder="https://webhook.site/...">
+                    </div>
+                </div>
+
+                <div class="jf-panel">
+                    <h2>Fallback API user</h2>
+                    <div class="jf-field">
+                        <label for="MOMO_API_USER_ID">API user ID</label>
+                        <input id="MOMO_API_USER_ID" name="MOMO_API_USER_ID" placeholder="UUID from sandbox provisioning">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_API_KEY">API key</label>
+                        <input id="MOMO_API_KEY" name="MOMO_API_KEY" type="password" placeholder="Generated sandbox API key">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-grid three">
+                <div class="jf-panel">
+                    <h2>Collections</h2>
+                    <div class="jf-field">
+                        <label for="MOMO_COLLECTION_SUBSCRIPTION_KEY">Subscription key</label>
+                        <input id="MOMO_COLLECTION_SUBSCRIPTION_KEY" name="MOMO_COLLECTION_SUBSCRIPTION_KEY" type="password">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_COLLECTION_API_USER_ID">Product API user ID</label>
+                        <input id="MOMO_COLLECTION_API_USER_ID" name="MOMO_COLLECTION_API_USER_ID">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_COLLECTION_API_KEY">Product API key</label>
+                        <input id="MOMO_COLLECTION_API_KEY" name="MOMO_COLLECTION_API_KEY" type="password">
+                    </div>
+                </div>
+
+                <div class="jf-panel">
+                    <h2>Disbursement</h2>
+                    <div class="jf-field">
+                        <label for="MOMO_DISBURSEMENT_SUBSCRIPTION_KEY">Subscription key</label>
+                        <input id="MOMO_DISBURSEMENT_SUBSCRIPTION_KEY" name="MOMO_DISBURSEMENT_SUBSCRIPTION_KEY" type="password">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_DISBURSEMENT_API_USER_ID">Product API user ID</label>
+                        <input id="MOMO_DISBURSEMENT_API_USER_ID" name="MOMO_DISBURSEMENT_API_USER_ID">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_DISBURSEMENT_API_KEY">Product API key</label>
+                        <input id="MOMO_DISBURSEMENT_API_KEY" name="MOMO_DISBURSEMENT_API_KEY" type="password">
+                    </div>
+                </div>
+
+                <div class="jf-panel">
+                    <h2>Remittance</h2>
+                    <div class="jf-field">
+                        <label for="MOMO_REMITTANCE_SUBSCRIPTION_KEY">Subscription key</label>
+                        <input id="MOMO_REMITTANCE_SUBSCRIPTION_KEY" name="MOMO_REMITTANCE_SUBSCRIPTION_KEY" type="password">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_REMITTANCE_API_USER_ID">Product API user ID</label>
+                        <input id="MOMO_REMITTANCE_API_USER_ID" name="MOMO_REMITTANCE_API_USER_ID">
+                    </div>
+                    <div class="jf-field">
+                        <label for="MOMO_REMITTANCE_API_KEY">Product API key</label>
+                        <input id="MOMO_REMITTANCE_API_KEY" name="MOMO_REMITTANCE_API_KEY" type="password">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-jf-submit" type="submit">Save Sandbox Keys</button>
+        </form>
+    </main>
+
+    <div class="toast" id="toast"></div>
+    <script src="/front-end/js/momo-settings.js" defer></script>
+</body>
+</html>

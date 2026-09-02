@@ -18,9 +18,9 @@
                 </a>
                 <nav class="nav-links">
                     <a href="/home">Home</a>
-                    <a href="/trips">My Trips</a>
+                    <!-- <a href="/trips">My Trips</a> -->
                     <a href="/explore" class="active">Explore</a>
-                    <a href="/bookings">Bookings</a>
+                    <a href="/trips">My Trips</a>
                     <a href="/journeyfund">JourneyFund</a>
                 </nav>
             </div>
@@ -45,7 +45,13 @@
                 <h1 id="destinationTitle">Results</h1>
                 <p id="destinationSubtitle" style="color: var(--momo-gray-medium); margin-top: 4px;"></p>
             </div>
-            <a href="/home" class="change-search"><i class="fa-solid fa-arrow-left"></i> Change search</a>
+            <div class="results-actions">
+                <label class="trip-date-field" for="tripDateInput">
+                    <i class="fa-regular fa-calendar"></i>
+                    <input type="date" id="tripDateInput" aria-label="Trip date">
+                </label>
+                <a href="/home" class="change-search"><i class="fa-solid fa-arrow-left"></i> Change search</a>
+            </div>
         </div>
 
         <!-- Category tabs — clicking these swaps which listings are shown below.
@@ -96,6 +102,10 @@
                 <span>Total</span>
                 <span id="cartPanelTotal">R0</span>
             </div>
+            <label class="cart-date-field" for="cartTripDateInput">
+                Trip date
+                <input type="date" id="cartTripDateInput">
+            </label>
             <button class="btn-add-trip" id="addToTripBtn">Add to Trips</button>
         </div>
     </aside>
