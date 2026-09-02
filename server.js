@@ -235,6 +235,20 @@ async function callMomoTransaction(product, pathName, body, referenceId = random
   return { response, referenceId };
 }
 
+// Checks the status of a previously submitted MoMo transaction (e.g. requesttopay, transfer)
+async function callMomoStatus(product, pathName, referenceId) {
+  const config = momoProductConfig(product);
+  const token = await getMomoAccessToken(product);
+  const response = await axios.get(`${MOMO_BASE_URL}/${product}/v1_0/${pathName}/${referenceId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Ocp-Apim-Subscription-Key": config.subscriptionKey,
+      "X-Target-Environment": config.targetEnvironment,
+    },
+  });
+  return response.data;
+}
+
 function mask(value) {
   if (!value) return "";
   return value.length <= 6 ? "******" : `${value.slice(0, 3)}...${value.slice(-3)}`;
@@ -534,6 +548,32 @@ app.post("/api/journeyfund/pay", async (req, res) => {
   });
 });
 
+// Checks the status of a JourneyFund request-to-pay using the reference from /api/journeyfund/pay
+app.get("/api/journeyfund/pay/status/:reference", async (req, res) => {
+  const { reference } = req.params;
+
+  if (!hasMomoCredentials("collection")) {
+    return res.json({
+      mode: "demo",
+      reference,
+      status: "SUCCESSFUL",
+      message: "Demo mode - no live MoMo status check performed.",
+    });
+  }
+
+  try {
+    const status = await callMomoStatus("collection", "requesttopay", reference);
+    res.json({ mode: "momo-sandbox", reference, ...status });
+  } catch (error) {
+    console.error("MoMo collection status check failed:", error.response?.data || error.message);
+    res.status(502).json({
+      success: false,
+      error: "Could not fetch MoMo requesttopay status. Check the reference and sandbox keys.",
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 app.post("/api/disburse", async (req, res) => {
   if (hasMomoCredentials("disbursement")) {
     try {
@@ -671,6 +711,37 @@ app.post("/api/momo/provision-user", async (req, res) => {
       details: error.response?.data || error.message,
     });
   }
+});
+
+// Checks live MoMo sandbox status by attempting a real token fetch per product
+app.get("/api/momo/status", async (req, res) => {
+  const products = ["collection", "disbursement", "remittance"];
+  const results = {};
+
+  for (const product of products) {
+    if (!hasMomoCredentials(product)) {
+      results[product] = { configured: false, status: "not_configured" };
+      continue;
+    }
+    try {
+      await getMomoAccessToken(product); // real call to MoMo sandbox
+      results[product] = { configured: true, status: "ok" };
+    } catch (error) {
+      results[product] = {
+        configured: true,
+        status: "error",
+        details: error.response?.data || error.message,
+      };
+    }
+  }
+
+  const anyError = products.some(p => results[p].status === "error");
+  const httpStatus = anyError ? 502 : 200;
+
+  res.status(httpStatus).json({
+    checkedAt: new Date().toISOString(),
+    products: results,
+  });
 });
 
 app.listen(PORT, () => {
