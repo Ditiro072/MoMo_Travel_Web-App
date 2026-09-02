@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MTN MoMo Travel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-banner" style="background-image: url('images/background-img.jpg');">
+            <!-- Background image applied via inline style referencing the provided file -->
+        </div>
+        
+        <div class="auth-form-section">
+            <div class="form-wrapper">
+                <h1 class="brand-text">MTN <span>MoMo</span> Travel</h1>
+                <h2>Welcome Back</h2>
+                <p>Log in to manage your smart travel plans and budget.</p>
+                
+                <form action="/login-endpoint" method="POST">
+                    <div class="input-group">
+                        <label for="username">Mobile Number or Email</label>
+                        <input type="text" id="username" name="username" placeholder="Enter your mobile number" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="pin">MoMo PIN / Password</label>
+                        <input type="password" id="pin" name="pin" placeholder="Enter your PIN" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Log In</button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,158 @@
+/* Core Variables based on MTN MoMo Branding */
+:root {
+    --momo-yellow: #FFCC00;
+    --momo-blue: #00375d;
+    --momo-blue-dark: #002540;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --bg-light: #ffffff;
+    --border-color: #dddddd;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+}
+
+/* Split Screen Layout */
+.auth-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Left Side: Background Image */
+.auth-banner {
+    flex: 1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    display: none; /* Hidden on smaller screens */
+}
+
+@media (min-width: 768px) {
+    .auth-banner {
+        display: block;
+    }
+}
+
+/* Right Side: Form Area */
+.auth-form-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: var(--bg-light);
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Typography & Branding */
+.brand-text {
+    font-size: 1.8rem;
+    color: var(--momo-blue);
+    margin-bottom: 2rem;
+    text-align: center;
+    font-weight: 800;
+}
+
+.brand-text span {
+    color: var(--momo-yellow);
+    background-color: var(--momo-blue);
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+}
+
+.form-wrapper h2 {
+    font-size: 1.5rem;
+    color: var(--momo-blue);
+    margin-bottom: 0.5rem;
+}
+
+.form-wrapper p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+/* Form Inputs */
+.input-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--momo-blue);
+}
+
+.input-group input {
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+    outline: none;
+}
+
+.input-group input:focus {
+    border-color: var(--momo-yellow);
+    box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2);
+}
+
+/* Primary Button */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--momo-yellow);
+    color: var(--momo-blue);
+    border: none;
+    border-radius: 25px; /* Pill shape typical for mobile/modern apps */
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    margin-top: 1rem;
+}
+
+.btn-primary:hover {
+    background-color: #e6b800;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* Links & Footer */
+.auth-footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.auth-footer a {
+    color: var(--momo-blue);
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.auth-footer a:hover {
+    color: var(--momo-yellow);
+    text-decoration: underline;
+}

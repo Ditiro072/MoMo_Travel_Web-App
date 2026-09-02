@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - MTN MoMo Travel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-banner" style="background-image: url('ChatGPT Image Aug 28, 2026, 09_33_47 PM.png');">
+        </div>
+        
+        <div class="auth-form-section">
+            <div class="form-wrapper">
+                <h1 class="brand-text">MTN <span>MoMo</span> Travel</h1>
+                <h2>Create an Account</h2>
+                <p>Join to unify your travel planning and payments.</p>
+                
+                <form action="/signup-endpoint" method="POST">
+                    <div class="input-group">
+                        <label for="fullname">Full Name</label>
+                        <input type="text" id="fullname" name="fullname" placeholder="e.g. Nhlakanipho" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="mobile">Mobile Number</label>
+                        <input type="tel" id="mobile" name="mobile" placeholder="Enter your MTN mobile number" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="pin">Create PIN</label>
+                        <input type="password" id="pin" name="pin" placeholder="Create a secure PIN" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Sign Up</button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="login.html">Log In</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
