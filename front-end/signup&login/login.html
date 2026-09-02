@@ -1,42 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - MTN MoMo Travel</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In - MTN MoMo Travel</title>
+  <style>
+
+    :root {
+      --momo-yellow: #FFCC00;
+      --momo-yellow-soft: #FFE066;
+      --momo-navy: #00375D;
+      --momo-navy-dark: #001F33;
+      --text-dark: #1A1A1A;
+      --text-light: #6B7280;
+      --border-color: #E5E7EB;
+      --bg-light: #FFFFFF;
+      --danger: #E5484D;
+      --success: #22C55E;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--momo-navy-dark);
+    }
+
+    /* ---------------- Animated brand panel (left side) ---------------- */
+
+    .auth-container {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    .auth-banner {
+      flex: 1.1;
+      position: relative;
+      display: none;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--momo-navy) 0%, var(--momo-navy-dark) 100%);
+    }
+
+    @media (min-width: 900px) {
+      .auth-banner { display: flex; align-items: center; justify-content: center; }
+    }
+
+    /* Floating gradient blobs */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(10px);
+      opacity: 0.55;
+      animation: float 10s ease-in-out infinite;
+    }
+    .blob-1 {
+      width: 320px; height: 320px;
+      background: radial-gradient(circle at 30% 30%, var(--momo-yellow), transparent 70%);
+      top: -60px; left: -60px;
+      animation-duration: 11s;
+    }
+    .blob-2 {
+      width: 260px; height: 260px;
+      background: radial-gradient(circle at 30% 30%, #4FA8D8, transparent 70%);
+      bottom: -80px; right: -40px;
+      animation-duration: 13s;
+      animation-delay: -3s;
+    }
+    .blob-3 {
+      width: 180px; height: 180px;
+      background: radial-gradient(circle at 30% 30%, var(--momo-yellow-soft), transparent 70%);
+      bottom: 20%; left: 10%;
+      animation-duration: 9s;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -30px) scale(1.08); }
+    }
+
+    .banner-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 3rem;
+      color: #fff;
+    }
+
+    .banner-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(6px);
+    }
+    .banner-badge .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--momo-yellow);
+      box-shadow: 0 0 10px var(--momo-yellow);
+    }
+
+    .banner-content h2 {
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+    .banner-content h2 span { color: var(--momo-yellow); }
+
+    .banner-content p {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 1rem;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .banner-stats {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-top: 2.5rem;
+    }
+    .banner-stats div { text-align: left; }
+    .banner-stats strong {
+      display: block;
+      font-size: 1.4rem;
+      color: var(--momo-yellow);
+    }
+    .banner-stats span {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    /* ---------------- Form section (right side) ---------------- */
+
+    .auth-form-section {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+      background: var(--bg-light);
+      position: relative;
+    }
+
+    .form-wrapper {
+      width: 100%;
+      max-width: 420px;
+      animation: slideUp 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--momo-navy);
+      margin-bottom: 2.2rem;
+    }
+    .brand-mark {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--momo-yellow), #FFB800);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--momo-navy);
+      font-weight: 900;
+      font-size: 1rem;
+      box-shadow: 0 4px 14px rgba(255, 204, 0, 0.4);
+    }
+
+    .form-wrapper h2 {
+      font-size: 1.6rem;
+      color: var(--text-dark);
+      margin-bottom: 0.4rem;
+      font-weight: 800;
+    }
+
+    .form-wrapper > p.subtext {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ---------------- Floating-label inputs ---------------- */
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1.6rem;
+    }
+
+    .input-group input, 
+    .input-group select {
+      width: 100%;
+      padding: 16px 14px 8px 14px;
+      font-size: 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      outline: none;
+      background: transparent;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    
+    /* Remove default dropdown arrow for cleaner look, optional */
+    .input-group select {
+      appearance: none; 
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      cursor: pointer;
+    }
+
+    .input-group label {
+      position: absolute;
+      left: 14px;
+      top: 16px;
+      font-size: 1rem;
+      color: var(--text-light);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      background: var(--bg-light);
+      padding: 0 4px;
+    }
+
+    .input-group input:focus,
+    .input-group input:not(:placeholder-shown),
+    .input-group select:focus,
+    .input-group select:valid {
+      border-color: var(--momo-yellow);
+      box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.15);
+    }
+
+    .input-group input:focus + label,
+    .input-group input:not(:placeholder-shown) + label,
+    .input-group select:focus + label,
+    .input-group select:valid + label {
+      top: -9px;
+      left: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--momo-navy);
+    }
+
+    .input-group.error input,
+    .input-group.error select {
+      border-color: var(--danger);
+      animation: shake 0.35s;
+    }
+    
+    .input-group .error-msg {
+      display: none;
+      color: var(--danger);
+      font-size: 0.78rem;
+      margin-top: 6px;
+    }
+    .input-group.error .error-msg { display: block; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* ---------------- PIN entry — segmented boxes, MoMo-style ---------------- */
+
+    .pin-group { margin-bottom: 1.8rem; }
+    .pin-group > label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--momo-navy);
+      margin-bottom: 10px;
+    }
+
+    .pin-boxes {
+      display: flex;
+      gap: 10px;
+    }
+
+    .pin-boxes input {
+      width: 50px;
+      height: 58px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--momo-navy);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+      caret-color: var(--momo-yellow);
+    }
+
+    .pin-boxes input:focus {
+      outline: none;
+      border-color: var(--momo-yellow);
+      box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .pin-boxes input.filled {
+      border-color: var(--momo-navy);
+      background: rgba(0, 55, 93, 0.03);
+    }
+
+    .pin-hint {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+
+    /* ---------------- Primary button ---------------- */
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--momo-yellow), #FFB800);
+      color: var(--momo-navy);
+      border: none;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s ease, box-shadow 0.25s ease;
+      box-shadow: 0 8px 20px rgba(255, 204, 0, 0.35);
+      margin-top: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(255, 204, 0, 0.45);
+    }
+
+    .btn-primary:active { transform: scale(0.97) translateY(0); }
+
+    .btn-primary .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 3px solid rgba(0, 55, 93, 0.25);
+      border-top-color: var(--momo-navy);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    .btn-primary.loading .btn-label { display: none; }
+    .btn-primary.loading .spinner { display: block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Ripple effect on click */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(0, 55, 93, 0.25);
+      transform: scale(0);
+      animation: ripple-anim 0.6s ease-out;
+      pointer-events: none;
+    }
+    @keyframes ripple-anim {
+      to { transform: scale(3); opacity: 0; }
+    }
+
+    /* ---------------- Footer + divider ---------------- */
+
+    .auth-footer {
+      margin-top: 1.8rem;
+      text-align: center;
+      font-size: 0.92rem;
+      color: var(--text-light);
+    }
+    .auth-footer a {
+      color: var(--momo-navy);
+      font-weight: 700;
+      text-decoration: none;
+      position: relative;
+    }
+    .auth-footer a::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: -2px;
+      width: 0; height: 2px;
+      background: var(--momo-yellow);
+      transition: width 0.25s ease;
+    }
+    .auth-footer a:hover::after { width: 100%; }
+
+    .success-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #15803D;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      margin-bottom: 1.2rem;
+    }
+    .success-banner.show { display: flex; }
+  </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-banner" style="background-image: url('images/background-img.png');">
-            <!-- Background image applied via inline style referencing the provided file -->
+  <div class="auth-container">
+
+    <div class="auth-banner">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+      <div class="banner-content">
+        <div class="banner-badge"><span class="dot"></span> Trusted by travellers across Africa</div>
+        <h2>Plan smart.<br>Pay easy with <span>MoMo</span>.</h2>
+        <p>Your trips, your budget, your itinerary — all in one place, secured by MTN MoMo.</p>
+        <div class="banner-stats">
+          <div><strong>12k+</strong><span>Trips planned</span></div>
+          <div><strong>4.9★</strong><span>Traveller rating</span></div>
+          <div><strong>R650</strong><span>Avg. saved / trip</span></div>
         </div>
-        
-        <div class="auth-form-section">
-            <div class="form-wrapper">
-                <h1 class="brand-text">MTN <span>MoMo</span> Travel</h1>
-                <h2>Welcome Back</h2>
-                <p>Log in to manage your smart travel plans and budget.</p>
-                
-                <form action="/login-endpoint" method="POST">
-                    <div class="input-group">
-                        <label for="username">Mobile Number or Email</label>
-                        <input type="text" id="username" name="username" placeholder="Enter your mobile number" required>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="pin">MoMo PIN / Password</label>
-                        <input type="password" id="pin" name="pin" placeholder="Enter your PIN" required>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary">Log In</button>
-                </form>
-                
-                <div class="auth-footer">
-                    <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <div class="auth-form-section">
+      <div class="form-wrapper">
+        <div class="brand-text">
+          <span class="brand-mark">M</span>
+          MTN MoMo Travel
+        </div>
+
+        <h2>Welcome back</h2>
+        <p class="subtext">Log in to manage your smart travel plans and budget.</p>
+
+        <div id="successBanner" class="success-banner">✓ Logged in successfully — redirecting…</div>
+
+        <!-- FIX: this whole page previously had no id on the form, an
+             action="/login-endpoint" that tried to POST to a page that
+             doesn't exist, and no JS behind it at all. Rebuilt to match
+             signup.html's design and wired to real Firebase Auth via
+             login.js (see NOTE in that file on Email+Password vs PIN). -->
+        <form id="loginForm" novalidate>
+          <div class="input-group" id="loginEmailGroup">
+            <input type="email" id="loginEmail" placeholder=" " required autocomplete="email">
+            <label for="loginEmail">Email Address</label>
+            <p class="error-msg">Please enter your email address.</p>
+          </div>
+
+          <div class="input-group" id="loginPasswordGroup">
+            <input type="password" id="loginPassword" placeholder=" " required autocomplete="current-password">
+            <label for="loginPassword">Password</label>
+            <p class="error-msg">Please enter your password.</p>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            <span class="btn-label">Log In</span>
+            <span class="spinner"></span>
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          Don't have an account? <a href="signup.html">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../../firebase-config/firebase-config.js"></script>
+  <script type="module" src="../../firebase-config/login.js"></script>
 </body>
 </html>
