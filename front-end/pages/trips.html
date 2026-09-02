@@ -25,6 +25,7 @@
                 </nav>
             </div>
             <div class="nav-right">
+                <button class="icon-button" id="logoutBtn" aria-label="Sign out" title="Sign out"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                 <a href="#" class="user-profile">
                     <div class="avatar">N</div>
                     <div class="user-info"><span class="user-name">Nhlakanipho</span></div>
@@ -49,7 +50,10 @@
         </div>
     </main>
 
-    <script src="../js/cart.js"></script>
-    <script src="../js/trips.js"></script>
+    <script type="module" src="../../firebase-config/firebase-config.js"></script>
+    <script type="module" src="../../firebase-config/firestore-service.js"></script>
+    <script type="module" src="../../firebase-config/auth-guard.js"></script>
+    <script src="../js/cart.js" defer></script>
+    <script src="../js/trips.js" defer></script>
 </body>
 </html>

@@ -9,20 +9,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<script>
-    const destinationInput = document.getElementById('destinationInput');
-
-    destinationInput.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            const destination = destinationInput.value.trim();
-
-            if (destination !== '') {
-                window.location.href = `../pages/results.html?destination=${encodeURIComponent(destination)}`;
-            }
-        }
-    });
-</script>
-
 <body>
     <header class="top-nav">
         <div class="nav-wrapper">
@@ -44,6 +30,7 @@
                 <button class="icon-button" aria-label="Notifications">
                     <i class="fa-regular fa-bell"></i>
                 </button>
+                <button class="icon-button" id="logoutBtn" aria-label="Sign out" title="Sign out"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                 <a href="#" class="user-profile">
                     <div class="avatar">N</div>
                     <div class="user-info">
@@ -183,5 +170,8 @@
             });
         });
     </script>
+    <script type="module" src="../../firebase-config/firebase-config.js"></script>
+    <script type="module" src="../../firebase-config/firestore-service.js"></script>
+    <script type="module" src="../../firebase-config/auth-guard.js"></script>
 </body>
 </html>
