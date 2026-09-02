@@ -713,36 +713,34 @@ app.post("/api/momo/provision-user", async (req, res) => {
   }
 });
 
-// Checks live MoMo sandbox status by attempting a real token fetch per product
-app.get("/api/momo/status", async (req, res) => {
-  const products = ["collection", "disbursement", "remittance"];
-  const results = {};
+// app.get("/api/momo/status", async (req, res) => {
+//   const products = ["collection", "disbursement", "remittance"];
+//   const results = {};
+//   for (const product of products) {
+//     if (!hasMomoCredentials(product)) {
+//       results[product] = { configured: false, status: "not_configured" };
+//       continue;
+//     }
+//     try {
+//       await getMomoAccessToken(product); // real call to MoMo sandbox
+//       results[product] = { configured: true, status: "ok" };
+//     } catch (error) {
+//       results[product] = {
+//         configured: true,
+//         status: "error",
+//         details: error.response?.data || error.message,
+//       };
+//     }
+//   }
 
-  for (const product of products) {
-    if (!hasMomoCredentials(product)) {
-      results[product] = { configured: false, status: "not_configured" };
-      continue;
-    }
-    try {
-      await getMomoAccessToken(product); // real call to MoMo sandbox
-      results[product] = { configured: true, status: "ok" };
-    } catch (error) {
-      results[product] = {
-        configured: true,
-        status: "error",
-        details: error.response?.data || error.message,
-      };
-    }
-  }
+//   const anyError = products.some(p => results[p].status === "error");
+//   const httpStatus = anyError ? 502 : 200;
 
-  const anyError = products.some(p => results[p].status === "error");
-  const httpStatus = anyError ? 502 : 200;
-
-  res.status(httpStatus).json({
-    checkedAt: new Date().toISOString(),
-    products: results,
-  });
-});
+//   res.status(httpStatus).json({
+//     checkedAt: new Date().toISOString(),
+//     products: results,
+//   });
+// });
 
 app.listen(PORT, () => {
   console.log(`MoMo Travel app running at http://localhost:${PORT}`);
