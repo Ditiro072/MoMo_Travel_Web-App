@@ -859,3 +859,74 @@ body {
     .form-panel { flex: none; width: 100%; border-right: none; }
     .visual-panel { display: none; }
 }
+
+/* Animated SVG Map Panel */
+.map-panel {
+    background-color: var(--momo-black); /* Deep dark background for the high-tech look */
+    position: relative;
+    overflow: hidden;
+}
+
+.map-overlay {
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%);
+    padding: 3rem;
+}
+
+.svg-map-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.8;
+}
+
+.africa-svg {
+    width: 120%;
+    height: 120%;
+    max-width: 800px;
+    filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.15));
+}
+
+/* Stylized Map Outline */
+.map-outline {
+    fill: #111111;
+    stroke: #333333;
+    stroke-width: 4;
+    stroke-dasharray: 10 5;
+}
+
+/* Glowing Nodes */
+.map-node {
+    fill: var(--momo-yellow);
+    box-shadow: 0 0 15px var(--momo-yellow);
+    animation: nodePulse 2s infinite alternate;
+}
+
+@keyframes nodePulse {
+    0% { r: 6; opacity: 0.7; filter: drop-shadow(0 0 5px var(--momo-yellow)); }
+    100% { r: 10; opacity: 1; filter: drop-shadow(0 0 15px var(--momo-yellow)); }
+}
+
+/* Connecting Flight Lines */
+.connection-line {
+    fill: none;
+    stroke: var(--momo-yellow);
+    stroke-width: 2;
+    stroke-dasharray: 8;
+    opacity: 0.4;
+    animation: dashMove 20s linear infinite;
+}
+
+@keyframes dashMove {
+    from { stroke-dashoffset: 1000; }
+    to { stroke-dashoffset: 0; }
+}
+
+/* Animated Airplane Icon */
+.airplane i {
+    font-size: 1.5rem;
+    color: var(--momo-yellow);
+    filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.8));
+    transform: translate(-50%, -50%); /* Centers the icon on the path */
+}
