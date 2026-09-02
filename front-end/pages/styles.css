@@ -363,3 +363,172 @@ body {
 .btn-modal-confirm { width: 100%; background: var(--momo-yellow); color: var(--momo-black); border: none; padding: 14px; border-radius: 30px; font-weight: 800; cursor: pointer; margin-top: 0.5rem; }
 .btn-modal-confirm:hover { background: var(--momo-yellow-hover); }
 .btn-modal-cancel { width: 100%; background: none; border: none; color: var(--momo-gray-medium); padding: 10px; font-weight: 600; cursor: pointer; font-size: 0.88rem; }
+
+
+
+/* ==========================================================================
+   Virtual Card & Wallet Layout
+   ========================================================================== */
+.wallet-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 4rem;
+}
+
+.wallet-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 420px;
+}
+
+.virtual-card {
+    background: linear-gradient(135deg, #111111 0%, #000000 100%);
+    width: 100%;
+    height: 240px;
+    border-radius: 20px;
+    padding: 25px;
+    color: #FFFFFF;
+    position: relative;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    overflow: hidden;
+    border: 1px solid #333;
+}
+
+.card-glow {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: #FFCC00;
+    border-radius: 50%;
+    opacity: 0.12;
+    filter: blur(40px);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    position: relative;
+    z-index: 2;
+}
+
+.momo-badge {
+    background: #000000;
+    color: #FFCC00;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    border: 1px solid #FFCC00;
+}
+
+.card-type {
+    font-size: 0.85rem;
+    color: #AAAAAA;
+    font-weight: 600;
+}
+
+.card-balance p {
+    font-size: 0.8rem;
+    color: #AAAAAA;
+    margin-bottom: 2px;
+}
+
+.card-balance h2 {
+    font-size: 2rem;
+    margin: 0 0 25px 0;
+    color: #FFCC00;
+}
+
+.card-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    z-index: 2;
+}
+
+.card-number {
+    font-size: 1.2rem;
+    letter-spacing: 2.5px;
+    margin-bottom: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 600;
+}
+
+.card-holder {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: #CCCCCC;
+    letter-spacing: 1px;
+}
+
+.card-meta {
+    display: flex;
+    gap: 15px;
+    text-align: right;
+}
+
+.meta-item span {
+    font-size: 0.65rem;
+    color: #AAAAAA;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.meta-item p {
+    font-size: 0.95rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 600;
+}
+
+/* Wallet Action Buttons */
+.wallet-actions {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.btn-wallet {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s, background-color 0.2s;
+    border: none;
+}
+
+.btn-wallet:active {
+    transform: scale(0.98);
+}
+
+.btn-wallet.add-funds {
+    background-color: var(--momo-yellow);
+    color: var(--momo-black);
+}
+
+.btn-wallet.add-funds:hover {
+    background-color: #e5b800;
+}
+
+.btn-wallet.send-funds {
+    background-color: var(--momo-black);
+    color: var(--momo-yellow);
+    border: 1px solid var(--momo-black);
+}
+
+.btn-wallet.send-funds:hover {
+    background-color: #222;
+}

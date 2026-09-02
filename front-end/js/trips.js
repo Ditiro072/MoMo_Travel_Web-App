@@ -12,7 +12,6 @@ const CATEGORY_LABELS = {
 };
 
 // Figure out which category a cart item belongs to by matching its id prefix
-// (st- / tr- / ac- / fd-), since cart items are stored flat, not nested by category.
 function categoryOf(item) {
   if (item.id.startsWith("st-")) return "stays";
   if (item.id.startsWith("tr-")) return "transport";
@@ -26,6 +25,109 @@ function formatDate(isoString) {
   return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// ----------------------------------------------------------
+// UI Helper: Toast Notification
+// ----------------------------------------------------------
+function showNotification(message) {
+  const toast = document.createElement("div");
+  toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
+  
+  // Injecting inline styles for the MoMo branded toast
+  Object.assign(toast.style, {
+    position: 'fixed',
+    bottom: '30px',
+    right: '30px',
+    backgroundColor: '#000000',
+    color: '#FFCC00',
+    padding: '12px 24px',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    zIndex: '9999',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+    transition: 'opacity 0.3s ease',
+    opacity: '1'
+  });
+  
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// ----------------------------------------------------------
+// Logic: Cancel Trip
+// ----------------------------------------------------------
+
+async function cancelTrip(tripId) {
+  let trips = getTrips();
+  const tripToCancel = trips.find(t => t.id === tripId);
+  
+  if (!tripToCancel) return;
+
+  // For sandbox testing, use an approved test MSISDN
+  const testMobileNumber = "46733123453"; // Example MoMo test number
+
+  showNotification("Initiating MoMo refund...");
+  
+  // Disable the specific cancel button to prevent duplicate requests
+  const tripCardItems = document.querySelector(`#items-${tripId}`);
+  if(tripCardItems) {
+      const btn = tripCardItems.parentElement.querySelector('.cancel-trip-btn');
+      if(btn) btn.disabled = true;
+  }
+
+  try {
+      const response = await fetch('http://localhost:3000/api/disburse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              amount: tripToCancel.total,
+              mobileNumber: testMobileNumber,
+              reference: `REF-${tripId}`,
+              note: "Trip Cancellation Refund"
+          })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+          trips = trips.filter(trip => trip.id !== tripId);
+          if (typeof setTrips === 'function') {
+            setTrips(trips);
+          } else {
+            localStorage.setItem('trips', JSON.stringify(trips)); 
+          }
+          
+          renderTrips();
+          showNotification("Trip canceled and R" + tripToCancel.total + " refunded via MoMo.");
+      } else {
+          showNotification("Refund failed: " + result.error);
+          
+          if(tripCardItems) {
+              const btn = tripCardItems.parentElement.querySelector('.cancel-trip-btn');
+              if(btn) btn.disabled = false;
+          }
+      }
+      
+  } catch (error) {
+      console.error(error);
+      showNotification("Connection error during MoMo refund.");
+      
+      if(tripCardItems) {
+          const btn = tripCardItems.parentElement.querySelector('.cancel-trip-btn');
+          if(btn) btn.disabled = false;
+      }
+  }
+}
+
+// ----------------------------------------------------------
+// Main Render Function
+// ----------------------------------------------------------
 function renderTrips() {
   const trips = getTrips();
   const container = document.getElementById("tripsList");
@@ -33,8 +135,8 @@ function renderTrips() {
 
   if (trips.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-solid fa-suitcase-rolling"></i>
+      <div class="empty-state" style="text-align: center; padding: 4rem 1rem; color: #666;">
+        <i class="fa-solid fa-suitcase-rolling" style="font-size: 3rem; margin-bottom: 1rem; color: #ccc;"></i>
         <p>No trips yet. Head to Explore, add a few stays/transport/activities to your cart, then hit "Add to Trips".</p>
       </div>`;
     return;
@@ -43,47 +145,75 @@ function renderTrips() {
   trips.forEach(trip => {
     const card = document.createElement("div");
     card.className = "trip-card";
+    // Inline styles added for card structure to ensure it displays correctly if CSS is missing
+    card.style.border = "1px solid #E0E0E0";
+    card.style.borderRadius = "16px";
+    card.style.overflow = "hidden";
+    card.style.backgroundColor = "#fff";
 
     const momoAcceptedCount = trip.items.filter(i => i.momoAccepted).length;
 
     card.innerHTML = `
-      <div class="trip-card-header">
+      <div class="trip-card-header" style="display: flex; justify-content: space-between; padding: 1.5rem; cursor: pointer; background: #FAFAFA; border-bottom: 1px solid #E0E0E0;">
         <div class="trip-card-title">
-          <h3>${trip.destination}</h3>
-          <span>${formatDate(trip.createdAt)} · ${trip.items.length} item${trip.items.length === 1 ? "" : "s"} · ${momoAcceptedCount}/${trip.items.length} accept MoMo</span>
+          <h3 style="margin: 0 0 4px 0; font-size: 1.25rem;">${trip.destination}</h3>
+          <span style="font-size: 0.85rem; color: #666;">${formatDate(trip.createdAt)} · ${trip.items.length} item${trip.items.length === 1 ? "" : "s"} · ${momoAcceptedCount}/${trip.items.length} accept MoMo</span>
         </div>
-        <div class="trip-card-total">
-          <strong>R${trip.total}</strong>
-          <span>estimated total</span>
+        <div class="trip-card-total" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+          <div style="text-align: right;">
+             <strong style="font-size: 1.2rem;">R${trip.total}</strong>
+             <span style="display: block; font-size: 0.75rem; color: #666;">estimated total</span>
+          </div>
+          <!-- New Cancel Button -->
+          <button class="cancel-trip-btn" style="background: transparent; border: 1px solid #dc3545; color: #dc3545; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+             Cancel Trip
+          </button>
         </div>
       </div>
-      <div class="trip-card-items" id="items-${trip.id}"></div>
+      <div class="trip-card-items" id="items-${trip.id}" style="display: none; padding: 1.5rem;"></div>
     `;
 
     const header = card.querySelector(".trip-card-header");
     const itemsBox = card.querySelector(`#items-${trip.id}`);
+    const cancelBtn = card.querySelector(".cancel-trip-btn");
+
+    // Cancel Button Event Listener
+    cancelBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevents the accordion from toggling when clicking the button
+      if (confirm("Are you sure you want to cancel this trip?")) {
+        cancelTrip(trip.id);
+      }
+    });
+
+    // Accordion Toggle Event Listener
+    header.addEventListener("click", () => {
+      const isShowing = itemsBox.style.display === "block";
+      itemsBox.style.display = isShowing ? "none" : "block";
+    });
 
     trip.items.forEach(item => {
       const row = document.createElement("div");
       row.className = "trip-item-row";
+      row.style.display = "flex";
+      row.style.justifyContent = "space-between";
+      row.style.padding = "10px 0";
+      row.style.borderBottom = "1px solid #eee";
+
       const badge = item.momoAccepted
-        ? `<span class="momo-badge accepted" style="padding: 3px 8px;"><i class="fa-solid fa-circle-check"></i> MoMo</span>`
-        : `<span class="momo-badge not-accepted" style="padding: 3px 8px;"><i class="fa-solid fa-circle-xmark"></i> No MoMo</span>`;
+        ? `<span class="momo-badge accepted" style="padding: 3px 8px; font-size: 0.75rem; background: #000; color: #FFCC00; border-radius: 6px;"><i class="fa-solid fa-circle-check"></i> MoMo</span>`
+        : `<span class="momo-badge not-accepted" style="padding: 3px 8px; font-size: 0.75rem; background: #f8f9fa; color: #666; border-radius: 6px;"><i class="fa-solid fa-circle-xmark"></i> No MoMo</span>`;
+      
       row.innerHTML = `
         <div>
-          <div class="cat-tag">${CATEGORY_LABELS[categoryOf(item)] || ""}</div>
-          <strong>${item.name}</strong> — ${item.location}
+          <div class="cat-tag" style="font-size: 0.7rem; text-transform: uppercase; color: #999; font-weight: 700; margin-bottom: 2px;">${CATEGORY_LABELS[categoryOf(item)] || ""}</div>
+          <strong>${item.name}</strong> <span style="color: #666;">— ${item.location}</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           ${badge}
-          <strong>R${item.price}</strong>
+          <strong style="width: 70px; text-align: right;">R${item.price}</strong>
         </div>
       `;
       itemsBox.appendChild(row);
-    });
-
-    header.addEventListener("click", () => {
-      itemsBox.classList.toggle("show");
     });
 
     container.appendChild(card);

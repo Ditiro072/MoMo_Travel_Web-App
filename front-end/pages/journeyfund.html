@@ -11,7 +11,7 @@
     <header class="top-nav">
         <div class="nav-wrapper">
             <div class="nav-left">
-                <a href="home.html" class="logo">
+                <a href="home.html" class="logo" style="text-decoration: none;">
                     <span class="logo-accent">MTN</span>
                     <span class="logo-momo">MoMo</span>
                     <span class="logo-sub">Travel</span>
@@ -24,7 +24,7 @@
                 </nav>
             </div>
             <div class="nav-right">
-                <a href="#" class="user-profile">
+                <a href="#" class="user-profile" style="text-decoration: none;">
                     <div class="avatar">N</div>
                     <div class="user-info"><span class="user-name">Nhlakanipho</span></div>
                 </a>
@@ -34,25 +34,50 @@
 
     <main class="page-container">
 
-        <!-- Hero: explains the innovation up front, per the brief -->
-        <section class="jf-hero">
-            <div class="jf-hero-pill"><i class="fa-solid fa-shield-heart"></i> Purpose-based funding</div>
-            <h1>Don't just send money for the trip.<br>Fund the <span>journey</span> itself.</h1>
-            <p>
-                Instead of an open transfer, every JourneyFund request is locked to one specific
-                expense — a hotel, a taxi, an activity. When it's paid, you get a secure Travel
-                Voucher that proves exactly what was funded, who paid, and whether it's been used.
-            </p>
-            <div class="jf-hero-flow">
-                <span class="step">1. Pick an item</span>
-                <i class="fa-solid fa-chevron-right"></i>
-                <span class="step">2. Pay it or ask a friend</span>
-                <i class="fa-solid fa-chevron-right"></i>
-                <span class="step">3. MoMo payment</span>
-                <i class="fa-solid fa-chevron-right"></i>
-                <span class="step">4. Travel Voucher issued</span>
-                <i class="fa-solid fa-chevron-right"></i>
-                <span class="step">5. Provider redeems it</span>
+        <!-- Virtual Card & Wallet Actions -->
+        <section class="wallet-section">
+            <div class="wallet-container">
+                <!-- The Virtual Card -->
+                <div class="virtual-card">
+                    <div class="card-glow"></div>
+                    
+                    <div class="card-header">
+                        <div class="momo-badge">MTN MoMo</div>
+                        <span class="card-type">JourneyFund</span>
+                    </div>
+                    
+                    <div class="card-balance">
+                        <p>Available Balance</p>
+                        <h2 id="jf-balance">R 0.00</h2>
+                    </div>
+                    
+                    <div class="card-details">
+                        <div class="card-number-wrapper">
+                            <p class="card-number">**** **** **** 4829</p>
+                            <p class="card-holder">Nhlakanipho</p>
+                        </div>
+                        <div class="card-meta">
+                            <div class="meta-item">
+                                <span>EXP</span>
+                                <p>12/28</p>
+                            </div>
+                            <div class="meta-item">
+                                <span>CVV</span>
+                                <p>***</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fund Actions (Tied to MoMo Collection/Disbursement APIs) -->
+                <div class="wallet-actions">
+                    <button class="btn-wallet add-funds" id="addFundsBtn">
+                        <i class="fa-solid fa-plus"></i> Add Funds
+                    </button>
+                    <button class="btn-wallet send-funds" id="sendFundsBtn">
+                        <i class="fa-solid fa-paper-plane"></i> Send Funds
+                    </button>
+                </div>
             </div>
         </section>
 
